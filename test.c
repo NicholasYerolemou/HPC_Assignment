@@ -2,11 +2,22 @@
 #include <stdlib.h>
 #include "test.h"
 
+const int p = 10;
+
+void printArray(int arr[], int n)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
 int main(int argc, char **argv)
 {
 
-    int n = 1000;
-    int p = 10;
+    int n = 9991;
+    // int p = 10;
     int arr[n];
     srand(123);
 
@@ -32,8 +43,10 @@ void parallelSort(int arr[], int n, int p)
 
     // To do this we need to create the subarrays, select the pivots from each of them and then sort the pivots
 
-    int samples[p - 1];
-    int pivots[p]; // chech how many this is meant to be
+    int numSamples = p * (p - 1);
+
+    int samples[numSamples]; // holds all the samples from all the subarrays.
+    int pivots[p - 1];       // check how many this is meant to be
 
     // select p-1 evenly spaced elements for the pivots
     int size = (n + p - 1) / p;     // size of each subarray - 1 subarray per thread
@@ -45,38 +58,47 @@ void parallelSort(int arr[], int n, int p)
     int start, end;
     // Phase 1
 
-    for (int i = 0; i < p; ++i) // for each processor
+    int pos = 0;
+    for (int i = 0; i < p; i++) // // loop through all the sublists
     {
-        // we create the partition start-end
+
+        // we create the partition start-end of this sublist
         start = i * size;
-        end = (i + 1) * size - 1;
+        end = start + size - 1;
 
         if (end >= n)
         {
             end = n - 1;
         }
 
-        qsort(arr, start, end, compare); // sort each sublist. i.e. sort the sublist that was given to each processor so that we can take regular sample
-        // for (int j = 1; j < p; ++j) // select p-1 samples from the sublists. The lists are in order and we select evenly spacee samples based on rsize.
-        // {
-        //     if (j * rsize <= end)
-        //     {
-        //         samples[i * p + j] = arr[j * rsize]; // this array holds all the samples from every sublist
-        //     }
-        //     else
-        //     {
-        //         samples[i * p + j] = arr[end];
-        //     }
-        // }
+        qsort(&arr[start], end - start, sizeof(int), cmpfunc); // sort this sublist in ascending order. Not sure if i should add +1 to second parameter(size)
+
+        // select p-1 samples from this sublist
+        for (int j = 1; j < p; ++j)
+        {
+
+            if (j * rsize <= end)
+            {
+
+                samples[pos] = arr[j * rsize]; // this array holds all the samples from every sublist
+                pos++;
+            }
+            else
+            {
+
+                samples[pos] = arr[end];
+                pos++;
+            }
+        }
     }
 
-    // qsort(samples, 0, p * (p - 1) - 1, compare); // we sort all the samples we took from all the sublists to get one main list of in order samples that we can select regular pivots from
+    qsort(&samples[0], numSamples, sizeof(int), cmpfunc); // we sort all the samples we took from all the sublists to get one main list of in order samples that we can select regular pivots from
 
-    // for (int i = 0; i < p - 1; ++i)
-    // {
-    //     pivots[i] = samples[i * p + p / 2];
-    //     printf("%i\n", pivots[i]);
-    // }
+    for (int i = 0; i < p - 1; ++i)
+    {
+        pivots[i] = samples[i * p + p / 2];
+        printf("%i\n", pivots[i]);
+    }
 
     //     int subsize[p]; // check this
     //     for (int i = 0; i < p; ++i)
@@ -149,8 +171,8 @@ void parallelSort(int arr[], int n, int p)
     //     }
 }
 
-int compare(const void *a, const void *b)
-{ // used by quicksort - it is used to determine their relative order
+int cmpfunc(const void *a, const void *b)
+{
     return (*(int *)a - *(int *)b);
 }
 
