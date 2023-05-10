@@ -1,13 +1,19 @@
 CC=gcc
-CFLAGS=-fopenmp -lm
+CFLAGS=-lm
 
-all: openMP
+all: openMP serial
 
 openMP: ParallelSort_OpenMP.c
-	$(CC) -o ParallelSort_OpenMP ParallelSort_OpenMP.c $(CFLAGS)
+	$(CC) -o ParallelSort_OpenMP ParallelSort_OpenMP.c -fopenmp $(CFLAGS)
 
-run: openMP
+serial: ParallelSort_Serial.c
+	$(CC) -o ParallelSort_Serial ParallelSort_Serial.c $(CFLAGS)
+
+run_openMP: openMP
 	./ParallelSort_OpenMP
 
+run_serial: serial
+	./ParallelSort_Serial
+
 clean:
-	rm -f ParallelSort_OpenMP
+	rm -f ParallelSort_OpenMP ParallelSort_Serial
