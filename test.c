@@ -97,78 +97,87 @@ void parallelSort(int arr[], int n, int p)
     for (int i = 0; i < p - 1; ++i)
     {
         pivots[i] = samples[i * p + p / 2];
-        printf("%i\n", pivots[i]);
+        // printf("%i\n", pivots[i]);
     }
 
-    //     int subsize[p]; // check this
-    //     for (int i = 0; i < p; ++i)
-    //     {
-    //         start = i * size;
-    //         end = (i + 1) * size - 1;
-    //         if (end >= n)
-    //         {
-    //             end = n - 1;
-    //         }
-    //         // int subsize[i * ]; // check this, i dont know where to make it or how big
-    //         subsize[i * (p + 1)] = start;
-    //         subsize[i * (p + 1) + p] = end + 1;
-    //         Sublists(arr, start, end, subsize, 1 * (p + 1), pivots, 1, p - 1);
-    //     }
+    // divide each sorted list i into p sublists
+    int subsize[2 * p]; // holds the start and end indices of each subarray
+    pos = 0;            // may be more effiecnt may to do this in parallel
+    for (int i = 0; i < p; ++i)
+    {
+        start = i * size;
+        end = start + size - 1;
+        if (end >= n)
+        {
+            end = n - 1;
+        }
 
-    //     int bucksize[p];
-    //     for (int i = 0; i < p; ++i)
-    //     {
-    //         bucksize[i] = 0;
+        subsize[pos] = start;
+        pos++;
+        subsize[pos] = end + 1; // why +1
+        pos++;
+        Sublists(arr, start, end, subsize, 1 * (p + 1), pivots, 1, p - 1); // divides the current ith sub array in p more subarrays
+    }
 
-    //         for (int j = i; j < p * (p + 1); i += p + 1) // check this
-    //         {
-    //             bucksize[i] = bucksize[i] + subsize[j + 1] - subsize[j];
-    //         }
-    //     }
+    int bucksize[p * p];        // holds the size of each of the sublists we just created
+    for (int i = 0; i < p; ++i) // loop through all sub arrays
+    {
+        bucksize[i] = 0; // initialising the array
 
-    //     for (int i = 1; i < p; ++i)
-    //     {
-    //         bucksize[i] = bucksize[i] + bucksize[i - 1];
-    //     }
-    //     bucksize[0] = 0;
+        for (int j = i; j < p * (p + 1); j += +p + 1) // check this
+        {
 
-    //     for (int i = 0; i < p; ++i) // check this
-    //     {
-    //         int j = 1;
-    //         // 0 <= j <= p
-    //         mergeSort(arr, subsize[i + j * (p + 1)], subsize[i + j * (p + 1) + 1]);
-    //     }
-    // }
+            // printf("Subsize at pos");
+            bucksize[i] = bucksize[i] + subsize[j + 1] - subsize[j];
+            // bucksize[0]=bucksize[0]+subsize[1]-subsize[0] - the first sublist is
+        }
+    }
 
-    // void Sublists(int arr[], int start, int end, int subsize[], int at, int pivots[], int fp, int lp) // check these
+    printArray(bucksize, p * p);
+
+    for (int i = 1; i < p; ++i)
+    {
+        bucksize[i] = bucksize[i] + bucksize[i - 1];
+    }
+    bucksize[0] = 0;
+
+    // for (int i = 0; i < p; ++i) // check this
     // {
-    //     int mid = (fp + lp) / 2;
-    //     int pv = pivots[mid];
-    //     int lb = start;
-    //     int ub = end;
-    //     while (lb <= ub)
-    //     {
-    //         int center = (lb + ub) / 2;
-    //         if (arr[center] > pv)
-    //         {
-    //             ub = center - 1;
-    //         }
-    //         else
-    //         {
-    //             lb = center + 1;
-    //         }
-    //     }
+    //     int j = 1;
+    //     // 0 <= j <= p
+    //     mergeSort(arr, subsize[i + j * (p + 1)], subsize[i + j * (p + 1) + 1]);
+    // }
+}
 
-    //     subsize[at + mid] = lb;
+void Sublists(int arr[], int start, int end, int subsize[], int at, int pivots[], int fp, int lp) // check these
+{
+    int mid = (fp + lp) / 2;
+    int pv = pivots[mid];
+    int lb = start;
+    int ub = end;
+    while (lb <= ub)
+    {
+        int center = (lb + ub) / 2;
+        if (arr[center] > pv)
+        {
+            ub = center - 1;
+        }
+        else
+        {
+            lb = center + 1;
+        }
+    }
 
-    //     if (fp < mid)
-    //     {
-    //         Sublists(arr, start, lb - 1, subsize, at, pivots, fp, mid - 1);
-    //     }
-    //     if (mid < lp)
-    //     {
-    //         Sublists(arr, lb, end, subsize, at, pivots, mid + 1, lp);
-    //     }
+    subsize[at + mid] = lb;
+
+    if (fp < mid)
+    {
+        Sublists(arr, start, lb - 1, subsize, at, pivots, fp, mid - 1);
+    }
+    if (mid < lp)
+    {
+        Sublists(arr, lb, end, subsize, at, pivots, mid + 1, lp);
+    }
 }
 
 int cmpfunc(const void *a, const void *b)
@@ -220,6 +229,7 @@ void merge(int arr[], int l,
 
     // Initial index of merged subarray
     k = l;
+
     while (i < n1 && j < n2)
     {
         if (L[i] <= R[j])
