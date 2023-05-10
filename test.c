@@ -152,31 +152,32 @@ void parallelSort(int arr[], int n, int p)
 void Sublists(int arr[], int start, int end, int subsize[], int at, int pivots[], int fp, int lp) // check these
 {
     int mid = (fp + lp) / 2;
-    int pv = pivots[mid];
-    int lb = start;
-    int ub = end;
-    while (lb <= ub)
+    int pv = pivots[mid - 1];
+    int lowerBound = start;
+    int upperBound = end;
+    int center;
+    while (lowerBound <= upperBound)
     {
-        int center = (lb + ub) / 2;
+        center = (lowerBound + upperBound) / 2;
         if (arr[center] > pv)
         {
-            ub = center - 1;
+            upperBound = center - 1;
         }
         else
         {
-            lb = center + 1;
+            lowerBound = center + 1;
         }
     }
 
-    subsize[at + mid] = lb;
+    subsize[at + mid] = lowerBound;
 
     if (fp < mid)
     {
-        Sublists(arr, start, lb - 1, subsize, at, pivots, fp, mid - 1);
+        Sublists(arr, start, lowerBound - 1, subsize, at, pivots, fp, mid - 1);
     }
     if (mid < lp)
     {
-        Sublists(arr, lb, end, subsize, at, pivots, mid + 1, lp);
+        Sublists(arr, lowerBound, end, subsize, at, pivots, mid + 1, lp);
     }
 }
 

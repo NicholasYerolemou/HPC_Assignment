@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "ParallelSort_Serial.h"
 #include <stdlib.h>
+#include "math.h"
 
 // parallel sort regular sampling
 
@@ -23,220 +24,355 @@
 
 // The swap, compare and parallel_sort methods were adapted from a ChatGPT version for parallel openMP into a seriel version
 
+// https://github.com/poodarchu/parallel-sorting-by-regular-sampling/blob/master/omp/test.c
+
 int main(int argc, char **argv)
 {
-    int n = 100; // size of array
-    int p = 10;  // number of threads
-    // int chunk_size = 1000; // chunk size for qsort
 
-    // allocate memory for array
-    int *arr = (int *)malloc(n * sizeof(int));
-
+    int p = 10;
+    int n = 100;
+    long long arr[n];
     srand(123);
 
-    // Generate random number between 0 and 100
-
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i) // fill the array with random values
     {
-        int random_number = rand() % 101;
-        arr[i] = random_number;
-        // printf("The number is %d\n", i);
+        arr[i] = rand() % 1000 + 1;
+        // printf("%i\n", arr[i]);
     }
 
-    parallel_sort(arr, n, p);
-
-    free(arr);
+    psrs_sort(arr, n, p);
+    for (int i = 0; i < n; ++i)
+    {
+        printf("%lli\n", arr[i]);
+    }
     return 0;
 }
 
-void swap(int *a, int *b) // ChatGPT
-{                         // this swaps int's a and b, used to move elements into the correct partition.
-    int temp = *a;
-    *a = *b;
-    *b = temp;
+int lcompare(const void *ptr2num1, const void *ptr2num2)
+{
+    long long num1 = *((long long *)ptr2num1);
+    long long num2 = *((long long *)ptr2num2);
+
+    if (num1 > num2)
+        return 1;
+    else if (num1 < num2)
+        return -1;
+    else
+        return 0;
 }
 
-int compare(const void *a, const void *b)
-{ // used by quicksort - it is used to determine their relative order
-    return (*(int *)a - *(int *)b);
+long long *merge_sort(long long *arr, int size)
+{
+    if (size > 1)
+    {
+        int middle = size / 2, i;
+        long long *left, *right;
+        left = arr;
+        right = arr + middle;
+
+        left = merge_sort(left, middle);
+        right = merge_sort(right, size - middle);
+        return merge(left, right, middle, size - middle);
+    }
+    else
+    {
+        return arr;
+    }
 }
 
-void parallel_sort(int *arr, int n, int p)
-{ // arr - input array, n - num elements in input array, p - num processors
-    int i, j, k, num_samples, chunk_size, *samples, *pivots, *counts, *displs;
+long long *merge(long long *left, long long *right, int l_end, int r_end)
+{
+    int temp_off, l_off, r_off, size = l_end + r_end;
+    long long *temp = malloc(sizeof(long long) * l_end);
 
-    // Allocate memory for local samples, pivots, counts and displacements
-    num_samples = p - 1;                                // how many samples were taken
-    chunk_size = n / p;                                 // number of elements that are assigned to each processor for processing during each iteration of the algorithm.
-    samples = (int *)malloc(sizeof(int) * num_samples); // the samples selected from input arrray in order to find the pivots
-    pivots = (int *)malloc(sizeof(int) * (p - 1));      // pivots selected
-
-    counts = (int *)calloc(p, sizeof(int)); // This array is used to store the number of elements in each partition after partitioning
-    displs = (int *)calloc(p, sizeof(int)); // This array is used to store the starting index of each partition in the output array.
-    int *temp = (int *)malloc(n * sizeof(int));
-
-    // Phase 1
-    for (i = 0; i < num_samples; i++)
-    { // sample the initial array to find the pivots
-        samples[i] = arr[rand() % n];
-    }
-
-    qsort(samples, num_samples, sizeof(int), compare); // sort the sampled array
-
-    for (i = 0; i < p - 1; i++)
-    { // select pivots
-        pivots[i] = samples[(i + 1) * (num_samples / p)];
-        // printf("The number is %d\n", pivots[i]);
-    }
-
-    // Phase 2
-    int num_pivots = p - 1;
-    for (i = 0; i < n; i++)
+    for (l_off = 0, temp_off = 0; left + l_off != right; l_off++, temp_off++)
     {
-        j = 0;
-        while (j < num_pivots && arr[i] > pivots[j])
-        {
-            j++;
-        }
-        counts[j]++;
+        *(temp + temp_off) = *(left + l_off);
     }
 
-    displs[0] = 0;
-    for (i = 1; i < p; i++)
+    temp_off = 0;
+    l_off = 0;
+    r_off = 0;
+
+    while (l_off < size)
     {
-        displs[i] = displs[i - 1] + counts[i - 1];
-        printf("The number is %d\n", displs[i]);
-    }
-
-    // Partition the array
-    for (i = 0; i < n; i++)
-    {
-        j = 0;
-        while (j < num_pivots && arr[i] > pivots[j])
+        if (temp_off < l_end)
         {
-            j++;
-        }
-        temp[displs[j]] = arr[i];
-        displs[j]++;
-    }
-
-    // Copy the temporary array back to the original array
-    for (i = 0; i < n; i++)
-    {
-        arr[i] = temp[i];
-    }
-
-    free(counts);
-    free(displs);
-    free(temp);
-
-    // Phase 3
-    if (p > 1)
-    { // there is no need to sort an array of size 1
-        int *partition_offsets = (int *)malloc(sizeof(int) * (p + 1));
-        partition_offsets[0] = 0;
-
-        for (i = 0; i < p; i++)
-        {
-            partition_offsets[i + 1] = partition_offsets[i] + chunk_size;
-        }
-        partition_offsets[p] = n;
-
-        for (i = 0; i < p; i++)
-        {
-            parallel_sort(arr + partition_offsets[i], partition_offsets[i + 1] - partition_offsets[i], 1);
-        }
-        free(partition_offsets);
-        // Merge the partitions
-        for (i = 1; i < p; i++)
-        {
-            k = 0;
-            for (j = 0; j < n; j++)
+            if (r_off < r_end)
             {
-                if (j >= displs[i] && j < displs[i + 1])
+                if (*(temp + temp_off) < *(right + r_off))
                 {
-                    continue;
+                    *(left + l_off) = *(temp + temp_off);
+                    temp_off++;
                 }
-                temp[k] = arr[j];
-                k++;
+                else
+                {
+                    *(left + l_off) = *(right + r_off);
+                    r_off++;
+                }
             }
-
-            for (j = 0; j < (displs[i + 1] - displs[i]); j++)
+            else
             {
-                temp[k] = arr[j + displs[i]];
-                k++;
+                *(left + l_off) = *(temp + temp_off);
+                temp_off++;
             }
-
-            for (j = 0; j < k; j++)
+        }
+        else
+        {
+            if (r_off < r_end)
             {
-                arr[j] = temp[j];
+                *(left + l_off) = *(right + r_off);
+                r_off++;
+            }
+            else
+            {
+                printf("\nERROR - merging loop going too far\n");
+            }
+        }
+        l_off++;
+    }
+    free(temp);
+    return left;
+}
+
+void insertion_sort(long long *arr, int n)
+{
+    int i, j, k, temp;
+
+    for (i = 1; i <= n; i++)
+    {
+        for (j = 0; j < i; j++)
+        {
+            if (arr[j] > arr[i])
+            {
+                temp = arr[j];
+                arr[j] = arr[i];
+
+                for (k = i; k > j; k--)
+                    arr[k] = arr[k - 1];
+
+                arr[k + 1] = temp;
             }
         }
     }
-
-    // Clean up
-    free(samples);
-    free(pivots);
 }
 
-//     //     // Phase 3
+// determine the boundaries for the sublists of an local array
+void calc_partition_borders(long long array[], // array being sorted
+                            int start,
+                            int end, // separate the array into current process range
+                            int result[],
+                            int at,             // this process start point in result
+                            long long pivots[], // the pivot values
+                            int first_pv,       // first pivot
+                            int last_pv)        // last pivot
+{
+    int mid, lowerbound, upperbound, center;
+    long long pv;
 
-//     // Recursively sort the partitions
-//     for (i = 0; i < p; i++)
-//     {
-//         int start = (i == 0) ? 0 : displs[i - 1];
-//         int end = displs[i];
-//         int size = end - start;
-//         if (size > 1)
-//         {
+    mid = (first_pv + last_pv) / 2;
+    pv = pivots[mid - 1];
+    lowerbound = start;
+    upperbound = end;
+    while (lowerbound <= upperbound)
+    {
+        center = (lowerbound + upperbound) / 2;
+        if (array[center] > pv)
+        {
+            upperbound = center - 1;
+        }
+        else
+        {
+            lowerbound = center + 1;
+        }
+    }
+    result[at + mid] = lowerbound;
 
-//             parallel_sort(&arr[start], size, p);
-//         }
-//     }
+    if (first_pv < mid)
+    {
+        calc_partition_borders(array, start, lowerbound - 1, result, at, pivots, first_pv, mid - 1);
+    }
+    if (mid < last_pv)
+    {
+        calc_partition_borders(array, lowerbound, end, result, at, pivots, mid + 1, last_pv);
+    }
+}
 
-//     // Merge the sorted partitions
-//     int *sorted = (int *)malloc(sizeof(int) * n);
-//     if (sorted == NULL)
-//     {
-//         printf("Error: memory allocation failed.\n");
-//         exit(EXIT_FAILURE);
-//     }
+void psrs_sort(long long *a, int n, int p)
+{
+    if (n > 1)
+    {
+        if (n <= 55)
+        {
+            insertion_sort(a, n);
+        }
+        else if (n <= 10000)
+        {
+            merge_sort(a, n);
+        }
+        else
+        {
+            int p, size, rsize, sample_size;
+            long long *sample, *pivots;
+            int *partition_borders, *bucket_sizes, *result_positions;
+            long long **loc_a_ptrs;
 
-//     int *indices = (int *)calloc(p, sizeof(int));
+            // p = omp_get_max_threads();
 
-//     if (indices == NULL)
-//     {
-//         printf("Error: memory allocation failed.\n");
-//         exit(EXIT_FAILURE);
-//     }
-//     for (i = 0; i < n; i++)
-//     {
-//         int min_index = -1;
-//         int min_value = 0;
-//         for (j = 0; j < p; j++)
-//         {
-//             int index = indices[j];
-//             if (index < (j == p - 1 ? n : (j + 1) * chunk_size))
-//             {
-//                 int value = arr[index];
-//                 if (min_index == -1 || value < min_value)
-//                 {
-//                     min_index = j;
-//                     min_value = value;
-//                 }
-//             }
-//         }
-//         sorted[i] = min_value;
-//         indices[min_index]++;
-//     }
+            // not sure what this is for
+            //  p = p * p * p;
+            //  if (p > n)
+            //  {
+            //      p = floor(pow(n, 0.33));
+            //      p -= p % 2;
+            //  }
+            //  else
+            //  {
+            //      p = omp_get_max_threads();
+            //      p -= p % 2;
+            //  }
+            //  omp_set_num_threads(p);
 
-//     for (int i = 0; i < n; ++i)
-//     {
-//         printf("%d ", sorted[i]);
-//     }
+            size = (n + p - 1) / p;
+            rsize = (size + p - 1) / p;
+            sample_size = p * (p - 1);
 
-//     // Copy the sorted array back into the original array
-//     // memcpy(arr, sorted, sizeof(int) * n);
-//     free(sorted);
-//     free(indices);
-// }
+            loc_a_ptrs = malloc(p * sizeof(long long *));
+            sample = malloc(sample_size * sizeof(long long));
+            partition_borders = malloc(p * (p + 1) * sizeof(int));
+            bucket_sizes = malloc(p * sizeof(int));
+            result_positions = malloc(p * sizeof(int));
+            pivots = malloc((p - 1) * sizeof(long long));
+
+            // #pragma omp parallel
+
+            int i, j, max, thread_num, start, end, loc_size, offset, this_result_size;
+            long long *loc_a, *this_result, *current_a;
+            for (int thread_num = 0; thread_num < p; thread_num++)
+            {
+                // thread_num = omp_get_thread_num();
+                start = thread_num * size;
+                end = start + size - 1;
+                if (end >= n)
+                    end = n - 1;
+                loc_size = (end - start + 1);
+                end = end % size;
+
+                loc_a = malloc(loc_size * sizeof(long long));
+                memcpy(loc_a, a + start, loc_size * sizeof(long long));
+                loc_a_ptrs[thread_num] = loc_a;
+
+                sortll(loc_a, loc_size);
+
+                offset = thread_num * (p - 1) - 1;
+
+                for (i = 1; i < p; i++)
+                {
+                    if (i * rsize <= end)
+                    {
+                        sample[offset + i] = loc_a[i * rsize - 1];
+                    }
+                    else
+                    {
+                        sample[offset + i] = loc_a[end];
+                    }
+                }
+            }
+
+            // #pragma omp barrier
+
+            // #pragma omp single
+            // {
+            merge_sort(sample, sample_size);
+            for (i = 0; i < p - 1; i++)
+            {
+                pivots[i] = sample[i * p + p / 2];
+            }
+            // }
+
+            for (int thread_num = 0; thread_num < p; thread_num++)
+            {
+
+                // #pragma omp barrier
+                offset = thread_num * (p + 1);
+                partition_borders[offset] = 0;
+                partition_borders[offset + p] = end + 1;
+                calc_partition_borders(loc_a, 0, loc_size - 1, partition_borders, offset, pivots, 1, p - 1);
+            }
+
+            for (int thread_num = 0; thread_num < p; thread_num++)
+            {
+
+                // #pragma omp barrier
+                max = p * (p + 1);
+                bucket_sizes[thread_num] = 0;
+                for (i = thread_num; i < max; i += p + 1)
+
+                {
+                    bucket_sizes[thread_num] += partition_borders[i + 1] - partition_borders[i];
+                }
+            }
+
+            // #pragma omp barrier
+
+            // #pragma omp single
+            // {
+            result_positions[0] = 0;
+            for (i = 1; i < p; i++)
+            {
+                result_positions[i] = bucket_sizes[i - 1] + result_positions[i - 1];
+            }
+            // }
+
+            // #pragma omp barrier
+
+            for (int thread_num = 0; thread_num < p; thread_num++)
+            {
+                this_result = a + result_positions[thread_num];
+
+                if (thread_num == p - 1)
+                {
+                    this_result_size = n - result_positions[thread_num];
+                }
+                else
+                {
+                    this_result_size = result_positions[thread_num + 1] - result_positions[thread_num];
+                }
+
+                this_result = a + result_positions[thread_num];
+
+                for (i = 0, j = 0; i < p; i++)
+                {
+                    int low, high, partition_size;
+                    offset = i * (p + 1) + thread_num;
+                    low = partition_borders[offset];
+                    high = partition_borders[offset + 1];
+                    partition_size = (high - low);
+                    if (partition_size > 0)
+                    {
+                        memcpy(this_result + j, &(loc_a_ptrs[i][low]), partition_size * sizeof(long long));
+                        j += partition_size;
+                    }
+                }
+
+                sortll(this_result, this_result_size);
+            }
+
+            // #pragma omp barrier
+            free(loc_a);
+            // end for
+
+            free(loc_a_ptrs);
+            free(sample);
+            free(partition_borders);
+            free(bucket_sizes);
+            free(result_positions);
+            free(pivots);
+        }
+    }
+}
+
+void sortll(long long *a, int len)
+{
+    qsort(a, len, sizeof(long long), lcompare);
+}

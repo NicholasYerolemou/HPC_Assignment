@@ -1,28 +1,4 @@
-#include "ParallelSort_OpenMP.h"
-#include "math.h"
-
-// https://github.com/poodarchu/parallel-sorting-by-regular-sampling/blob/master/omp/test.c
-
-int main(int argc, char **argv)
-{
-
-    int n = 100;
-    long long arr[n];
-    srand(123);
-
-    for (int i = 0; i < n; ++i) // fill the array with random values
-    {
-        arr[i] = rand() % 1000 + 1;
-        // printf("%i\n", arr[i]);
-    }
-
-    psrs_sort(arr, n);
-    for (int i = 0; i < n; ++i)
-    {
-        printf("%lli\n", arr[i]);
-    }
-    return 0;
-}
+#include "online.h"
 
 int lcompare(const void *ptr2num1, const void *ptr2num2)
 {
