@@ -20,16 +20,17 @@ int main(int argc, char **argv)
     pcg32_srandom_r(&rng, initstate,
                     initseq);
 
-    int size = 100000; // size of the array // get segmentation fault when size>10 000
-    int p = 1;         // num processors
+    int size = 1000000000; // size of the array // get segmentation fault when size>10 000
+    int p = 1;             // num processors
 
-    long long arr[size];
+    long *arr = malloc(size * sizeof(long));
     for (int i = 0; i < size; i++)
     {
         arr[i] = pcg32_random_r(&rng);
     }
 
     printf("Time: %f\n", psrs_sort(arr, size, p));
+    free(arr);
 
     // conduct tests with varying array sizes and processor numbers
     // write output to a file
