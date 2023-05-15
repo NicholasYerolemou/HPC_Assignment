@@ -4,31 +4,31 @@
 
 // https://github.com/poodarchu/parallel-sorting-by-regular-sampling/blob/master/omp/test.c
 
-int main(int argc, char **argv)
+// int main(int argc, char **argv)
+// {
+
+//     // int n = 100;
+//     // int arr[n];
+//     // srand(123);
+
+//     // for (int i = 0; i < n; ++i) // fill the array with random values
+//     // {
+//     //     arr[i] = rand() % 1000 + 1;
+//     //     // printf("%i\n", arr[i]);
+//     // }
+
+//     // psrs_sort(arr, n);
+//     // for (int i = 0; i < n; ++i)
+//     // {
+//     //     printf("%lli\n", arr[i]);
+//     // }
+//     // return 0;
+// }
+
+int OpenMP_lcompare(const void *ptr2num1, const void *ptr2num2)
 {
-
-    // int n = 100;
-    // long long arr[n];
-    // srand(123);
-
-    // for (int i = 0; i < n; ++i) // fill the array with random values
-    // {
-    //     arr[i] = rand() % 1000 + 1;
-    //     // printf("%i\n", arr[i]);
-    // }
-
-    // psrs_sort(arr, n);
-    // for (int i = 0; i < n; ++i)
-    // {
-    //     printf("%lli\n", arr[i]);
-    // }
-    // return 0;
-}
-
-int lcompare(const void *ptr2num1, const void *ptr2num2)
-{
-    long long num1 = *((long long *)ptr2num1);
-    long long num2 = *((long long *)ptr2num2);
+    int num1 = *((int *)ptr2num1);
+    int num2 = *((int *)ptr2num2);
 
     if (num1 > num2)
         return 1;
@@ -38,18 +38,18 @@ int lcompare(const void *ptr2num1, const void *ptr2num2)
         return 0;
 }
 
-long long *merge_sort(long long *arr, int size)
+int *OpenMP_merge_sort(int *arr, int size)
 {
     if (size > 1)
     {
         int middle = size / 2, i;
-        long long *left, *right;
+        int *left, *right;
         left = arr;
         right = arr + middle;
 
-        left = merge_sort(left, middle);
-        right = merge_sort(right, size - middle);
-        return merge(left, right, middle, size - middle);
+        left = OpenMP_merge_sort(left, middle);
+        right = OpenMP_merge_sort(right, size - middle);
+        return OpenMP_merge(left, right, middle, size - middle);
     }
     else
     {
@@ -57,10 +57,10 @@ long long *merge_sort(long long *arr, int size)
     }
 }
 
-long long *merge(long long *left, long long *right, int l_end, int r_end)
+int *OpenMP_merge(int *left, int *right, int l_end, int r_end)
 {
     int temp_off, l_off, r_off, size = l_end + r_end;
-    long long *temp = malloc(sizeof(long long) * l_end);
+    int *temp = malloc(sizeof(int) * l_end);
 
     for (l_off = 0, temp_off = 0; left + l_off != right; l_off++, temp_off++)
     {
@@ -112,7 +112,7 @@ long long *merge(long long *left, long long *right, int l_end, int r_end)
     return left;
 }
 
-void insertion_sort(long long *arr, int n)
+void OpenMP_insertion_sort(int *arr, int n)
 {
     int i, j, k, temp;
 
@@ -135,17 +135,17 @@ void insertion_sort(long long *arr, int n)
 }
 
 // determine the boundaries for the sublists of an local array
-void calc_partition_borders(long long array[], // array being sorted
-                            int start,
-                            int end, // separate the array into current process range
-                            int result[],
-                            int at,             // this process start point in result
-                            long long pivots[], // the pivot values
-                            int first_pv,       // first pivot
-                            int last_pv)        // last pivot
+void OpenMP_calc_partition_borders(int array[], // array being sorted
+                                   int start,
+                                   int end, // separate the array into current process range
+                                   int result[],
+                                   int at,       // this process start point in result
+                                   int pivots[], // the pivot values
+                                   int first_pv, // first pivot
+                                   int last_pv)  // last pivot
 {
     int mid, lowerbound, upperbound, center;
-    long long pv;
+    int pv;
 
     mid = (first_pv + last_pv) / 2;
     pv = pivots[mid - 1];
@@ -167,35 +167,37 @@ void calc_partition_borders(long long array[], // array being sorted
 
     if (first_pv < mid)
     {
-        calc_partition_borders(array, start, lowerbound - 1, result, at, pivots, first_pv, mid - 1);
+        OpenMP_calc_partition_borders(array, start, lowerbound - 1, result, at, pivots, first_pv, mid - 1);
     }
     if (mid < last_pv)
     {
-        calc_partition_borders(array, lowerbound, end, result, at, pivots, mid + 1, last_pv);
+        OpenMP_calc_partition_borders(array, lowerbound, end, result, at, pivots, mid + 1, last_pv);
     }
 }
 
-double psrs_sort(long long *a, int n)
+double openMP_psrs_sort(int *a, int n, int p)
 {
     clock_t start_time = clock(); // start timer
     if (n > 1)
     {
         if (n <= 55)
         {
-            insertion_sort(a, n);
+            OpenMP_insertion_sort(a, n);
         }
         else if (n <= 10000)
         {
-            merge_sort(a, n);
+            OpenMP_merge_sort(a, n);
         }
         else
         {
-            int p, size, rsize, sample_size;
-            long long *sample, *pivots;
+            int size, rsize, sample_size;
+            int *sample, *pivots;
             int *partition_borders, *bucket_sizes, *result_positions;
-            long long **loc_a_ptrs;
+            int **loc_a_ptrs;
 
-            p = omp_get_max_threads();
+            omp_set_num_threads(p);
+            // p = omp_get_max_threads();
+            printf("Num threads:%i\n", p);
             p = p * p * p;
             if (p > n)
             {
@@ -213,17 +215,17 @@ double psrs_sort(long long *a, int n)
             rsize = (size + p - 1) / p;
             sample_size = p * (p - 1);
 
-            loc_a_ptrs = malloc(p * sizeof(long long *));
-            sample = malloc(sample_size * sizeof(long long));
+            loc_a_ptrs = malloc(p * sizeof(int *));
+            sample = malloc(sample_size * sizeof(int));
             partition_borders = malloc(p * (p + 1) * sizeof(int));
             bucket_sizes = malloc(p * sizeof(int));
             result_positions = malloc(p * sizeof(int));
-            pivots = malloc((p - 1) * sizeof(long long));
+            pivots = malloc((p - 1) * sizeof(int));
 
 #pragma omp parallel
             {
                 int i, j, max, thread_num, start, end, loc_size, offset, this_result_size;
-                long long *loc_a, *this_result, *current_a;
+                int *loc_a, *this_result, *current_a;
 
                 thread_num = omp_get_thread_num();
                 start = thread_num * size;
@@ -233,11 +235,11 @@ double psrs_sort(long long *a, int n)
                 loc_size = (end - start + 1);
                 end = end % size;
 
-                loc_a = malloc(loc_size * sizeof(long long));
-                memcpy(loc_a, a + start, loc_size * sizeof(long long));
+                loc_a = malloc(loc_size * sizeof(int));
+                memcpy(loc_a, a + start, loc_size * sizeof(int));
                 loc_a_ptrs[thread_num] = loc_a;
 
-                sortll(loc_a, loc_size);
+                OpenMP_sortll(loc_a, loc_size);
 
                 offset = thread_num * (p - 1) - 1;
 
@@ -257,7 +259,7 @@ double psrs_sort(long long *a, int n)
 
 #pragma omp single
                 {
-                    merge_sort(sample, sample_size);
+                    OpenMP_merge_sort(sample, sample_size);
                     for (i = 0; i < p - 1; i++)
                     {
                         pivots[i] = sample[i * p + p / 2];
@@ -269,7 +271,7 @@ double psrs_sort(long long *a, int n)
                 offset = thread_num * (p + 1);
                 partition_borders[offset] = 0;
                 partition_borders[offset + p] = end + 1;
-                calc_partition_borders(loc_a, 0, loc_size - 1, partition_borders, offset, pivots, 1, p - 1);
+                OpenMP_calc_partition_borders(loc_a, 0, loc_size - 1, partition_borders, offset, pivots, 1, p - 1);
 
 #pragma omp barrier
 
@@ -315,12 +317,12 @@ double psrs_sort(long long *a, int n)
                     partition_size = (high - low);
                     if (partition_size > 0)
                     {
-                        memcpy(this_result + j, &(loc_a_ptrs[i][low]), partition_size * sizeof(long long));
+                        memcpy(this_result + j, &(loc_a_ptrs[i][low]), partition_size * sizeof(int));
                         j += partition_size;
                     }
                 }
 
-                sortll(this_result, this_result_size);
+                OpenMP_sortll(this_result, this_result_size);
 
 #pragma omp barrier
                 free(loc_a);
@@ -340,7 +342,7 @@ double psrs_sort(long long *a, int n)
     return elapsed_time;
 }
 
-void sortll(long long *a, int len)
+void OpenMP_sortll(int *a, int len)
 {
-    qsort(a, len, sizeof(long long), lcompare);
+    qsort(a, len, sizeof(int), OpenMP_lcompare);
 }

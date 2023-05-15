@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-lm
+CFLAGS=-lm -fopenmp
 
 all: openMP serial mpi bench
 
@@ -13,7 +13,7 @@ serial: ParallelSort_Serial.c
 	$(CC) -o ParallelSort_Serial ParallelSort_Serial.c $(CFLAGS)
 
 bench: benchMarks.c
-	$(CC) -o bench benchMarks.c $(CFLAGS)
+	$(CC) -o bench benchMarks.c  $(CFLAGS)
 
 run_openMP: openMP
 	./ParallelSort_OpenMP
@@ -29,4 +29,3 @@ run_bench: bench
 
 clean:
 	rm -f ParallelSort_OpenMP ParallelSort_Serial bench ParallelSort_MPI
-
