@@ -1,8 +1,11 @@
 #include "benchMarks.h"
 #include "pcg-c-basic-0.9/pcg_basic.h"
 #include "pcg-c-basic-0.9/pcg_basic.c"
+// #include "ParallelSort_OpenMP.h"
+// #include "ParallelSort_OpenMP.c"
 #include "ParallelSort_Serial.h"
 #include "ParallelSort_Serial.c"
+// #include <unistd.h>
 
 // #include "ParallelSort_OpenMP.h"
 
@@ -10,6 +13,11 @@
 
 int main(int argc, char **argv)
 {
+
+    // struct rlimit rl; // extend the timelimit of the program so it isnt killed if it runs too long
+    // getrlimit(RLIMIT_CPU, &rl);
+    // rl.rlim_cur = 10;
+    // setrlimit(RLIMIT_CPU, &rl);
 
     pcg32_random_t rng;           // object of the random number generator
     pcg32_srandom_r(&rng, 42, 0); // the first value is a seed value
@@ -20,13 +28,14 @@ int main(int argc, char **argv)
     pcg32_srandom_r(&rng, initstate,
                     initseq);
 
-    int size = 1000000000; // size of the array // get segmentation fault when size>10 000
-    int p = 1;             // num processors
+    int size = 10000; // size of the array // get segmentation fault when size>10 000
+    int p = 1;        // num processors
 
     long *arr = malloc(size * sizeof(long));
     for (int i = 0; i < size; i++)
     {
         arr[i] = pcg32_random_r(&rng);
+        // printf(" %ld \n", arr[i]);
     }
 
     printf("Time: %f\n", psrs_sort(arr, size, p));
