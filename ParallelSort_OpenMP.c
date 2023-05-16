@@ -175,7 +175,7 @@ void OpenMP_calc_partition_borders(int array[], // array being sorted
     }
 }
 
-double openMP_psrs_sort(int *a, int n, int p)
+double openMP_psrs_sort(int *a, int n, int p) // issue when p = 0 and we commment out the n<=10000 part
 {
     clock_t start_time = clock(); // start timer
     if (n > 1)
@@ -197,7 +197,7 @@ double openMP_psrs_sort(int *a, int n, int p)
 
             omp_set_num_threads(p);
             // p = omp_get_max_threads();
-            printf("Num threads:%i\n", p);
+            // printf("Num threads:%i\n", p);
             p = p * p * p;
             if (p > n)
             {

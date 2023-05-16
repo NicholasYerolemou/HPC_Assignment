@@ -229,7 +229,7 @@ double serial_psrs_sort(int *a, int n, int p)
             pivots = malloc((p - 1) * sizeof(int));
 
             // #pragma omp parallel
-            printf("P:%i\n", p);
+            // printf("P:%i\n", p);
             int i, j, max, thread_num, start, end, loc_size, offset, this_result_size;
             int *loc_a, *this_result, *current_a;
             for (int thread_num = 0; thread_num < p; thread_num++)
