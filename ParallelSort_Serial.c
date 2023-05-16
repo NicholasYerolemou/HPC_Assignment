@@ -2,6 +2,7 @@
 #include "ParallelSort_Serial.h"
 #include <stdlib.h>
 #include "math.h"
+#include "time.h"
 
 // parallel sort regular sampling
 
@@ -26,32 +27,14 @@
 
 // https://github.com/poodarchu/parallel-sorting-by-regular-sampling/blob/master/omp/test.c
 
-int main(int argc, char **argv)
-{
-
-    int p = 10;
-    int n = 100;
-    long long arr[n];
-    srand(123);
-
-    for (int i = 0; i < n; ++i) // fill the array with random values
-    {
-        arr[i] = rand() % 1000 + 1;
-        // printf("%i\n", arr[i]);
-    }
-
-    psrs_sort(arr, n, p);
-    for (int i = 0; i < n; ++i)
-    {
-        printf("%lli\n", arr[i]);
-    }
-    return 0;
-}
+// int main(int argc, char **argv)
+// {
+// }
 
 int lcompare(const void *ptr2num1, const void *ptr2num2)
 {
-    long long num1 = *((long long *)ptr2num1);
-    long long num2 = *((long long *)ptr2num2);
+    int num1 = *((int *)ptr2num1);
+    int num2 = *((int *)ptr2num2);
 
     if (num1 > num2)
         return 1;
@@ -61,12 +44,12 @@ int lcompare(const void *ptr2num1, const void *ptr2num2)
         return 0;
 }
 
-long long *merge_sort(long long *arr, int size)
+int *merge_sort(int *arr, int size)
 {
     if (size > 1)
     {
         int middle = size / 2, i;
-        long long *left, *right;
+        int *left, *right;
         left = arr;
         right = arr + middle;
 
@@ -80,10 +63,10 @@ long long *merge_sort(long long *arr, int size)
     }
 }
 
-long long *merge(long long *left, long long *right, int l_end, int r_end)
+int *merge(int *left, int *right, int l_end, int r_end)
 {
     int temp_off, l_off, r_off, size = l_end + r_end;
-    long long *temp = malloc(sizeof(long long) * l_end);
+    int *temp = malloc(sizeof(int) * l_end);
 
     for (l_off = 0, temp_off = 0; left + l_off != right; l_off++, temp_off++)
     {
@@ -135,7 +118,7 @@ long long *merge(long long *left, long long *right, int l_end, int r_end)
     return left;
 }
 
-void insertion_sort(long long *arr, int n)
+void insertion_sort(int *arr, int n)
 {
     int i, j, k, temp;
 
@@ -158,17 +141,17 @@ void insertion_sort(long long *arr, int n)
 }
 
 // determine the boundaries for the sublists of an local array
-void calc_partition_borders(long long array[], // array being sorted
+void calc_partition_borders(int array[], // array being sorted
                             int start,
                             int end, // separate the array into current process range
                             int result[],
-                            int at,             // this process start point in result
-                            long long pivots[], // the pivot values
-                            int first_pv,       // first pivot
-                            int last_pv)        // last pivot
+                            int at,       // this process start point in result
+                            int pivots[], // the pivot values
+                            int first_pv, // first pivot
+                            int last_pv)  // last pivot
 {
     int mid, lowerbound, upperbound, center;
-    long long pv;
+    int pv;
 
     mid = (first_pv + last_pv) / 2;
     pv = pivots[mid - 1];
@@ -198,8 +181,9 @@ void calc_partition_borders(long long array[], // array being sorted
     }
 }
 
-void psrs_sort(long long *a, int n, int p)
+double serial_psrs_sort(int *a, int n, int p)
 {
+    clock_t start_time = clock(); // start timer
     if (n > 1)
     {
         if (n <= 55)
@@ -212,10 +196,10 @@ void psrs_sort(long long *a, int n, int p)
         }
         else
         {
-            int p, size, rsize, sample_size;
-            long long *sample, *pivots;
+            int size, rsize, sample_size;
+            int *sample, *pivots;
             int *partition_borders, *bucket_sizes, *result_positions;
-            long long **loc_a_ptrs;
+            int **loc_a_ptrs;
 
             // p = omp_get_max_threads();
 
@@ -237,17 +221,17 @@ void psrs_sort(long long *a, int n, int p)
             rsize = (size + p - 1) / p;
             sample_size = p * (p - 1);
 
-            loc_a_ptrs = malloc(p * sizeof(long long *));
-            sample = malloc(sample_size * sizeof(long long));
+            loc_a_ptrs = malloc(p * sizeof(int *));
+            sample = malloc(sample_size * sizeof(int));
             partition_borders = malloc(p * (p + 1) * sizeof(int));
             bucket_sizes = malloc(p * sizeof(int));
             result_positions = malloc(p * sizeof(int));
-            pivots = malloc((p - 1) * sizeof(long long));
+            pivots = malloc((p - 1) * sizeof(int));
 
             // #pragma omp parallel
-
+            printf("P:%i\n", p);
             int i, j, max, thread_num, start, end, loc_size, offset, this_result_size;
-            long long *loc_a, *this_result, *current_a;
+            int *loc_a, *this_result, *current_a;
             for (int thread_num = 0; thread_num < p; thread_num++)
             {
                 // thread_num = omp_get_thread_num();
@@ -256,10 +240,11 @@ void psrs_sort(long long *a, int n, int p)
                 if (end >= n)
                     end = n - 1;
                 loc_size = (end - start + 1);
+                // printf("Loc Size: %i\n", loc_size);
                 end = end % size;
 
-                loc_a = malloc(loc_size * sizeof(long long));
-                memcpy(loc_a, a + start, loc_size * sizeof(long long));
+                loc_a = malloc(loc_size * sizeof(int));
+                memcpy(loc_a, a + start, loc_size * sizeof(int));
                 loc_a_ptrs[thread_num] = loc_a;
 
                 sortll(loc_a, loc_size);
@@ -350,7 +335,7 @@ void psrs_sort(long long *a, int n, int p)
                     partition_size = (high - low);
                     if (partition_size > 0)
                     {
-                        memcpy(this_result + j, &(loc_a_ptrs[i][low]), partition_size * sizeof(long long));
+                        memcpy(this_result + j, &(loc_a_ptrs[i][low]), partition_size * sizeof(int));
                         j += partition_size;
                     }
                 }
@@ -370,9 +355,14 @@ void psrs_sort(long long *a, int n, int p)
             free(pivots);
         }
     }
+
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+
+    return elapsed_time;
 }
 
-void sortll(long long *a, int len)
+void sortll(int *a, int len)
 {
-    qsort(a, len, sizeof(long long), lcompare);
+    qsort(a, len, sizeof(int), lcompare);
 }
