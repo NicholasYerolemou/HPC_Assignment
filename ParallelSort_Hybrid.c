@@ -9,7 +9,7 @@
 #include <string.h>
 #include <time.h>
 
-double hybrid_psrs_sort(long long *arr, int n, int p);
+double hybrid_psrs_sort(int *arr, int n, int p);
 // int *hybrid_merge_sort(int *arr, int size);
 // int *hybrid_merge(int *left, int *right, int l_end, int r_end);
 // void hybrid_sortll(int *a, int len);
@@ -17,12 +17,12 @@ double hybrid_psrs_sort(long long *arr, int n, int p);
 int main(int argc, char **argv)
 {
     int size = 1000;
-    long long numbers[size];
+    int numbers[size];
 
     // Seed the random number generator
     srand(time(NULL));
 
-    // Generate random long long numbers and store them in the array
+    // Generate random int numbers and store them in the array
     for (int i = 0; i < size; i++)
     {
         numbers[i] = rand();
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     hybrid_psrs_sort(numbers, size, 8);
 }
 
-double hybrid_psrs_sort(long long *arr, int n, int p)
+double hybrid_psrs_sort(int *arr, int n, int p)
 {
     // spilt data amogst nodes
     // in each node run in parallel sample selection
@@ -53,10 +53,10 @@ double hybrid_psrs_sort(long long *arr, int n, int p)
                 MPI_COMM_WORLD); // dristribute part of arr amongst nodes
 
     omp_set_num_threads(p);
-    long long size, rsize, sample_size;
-    long long *sample, *pivots;
-    long long *partition_borders, *bucket_sizes, *result_positions;
-    long long **loc_a_ptrs;
+    int size, rsize, sample_size;
+    int *sample, *pivots;
+    int *partition_borders, *bucket_sizes, *result_positions;
+    int **loc_a_ptrs;
     size = (n_per + p - 1) / p; // size of each threads sub-array
     // printf("size %lld\n", size);
     rsize = (size + p - 1) / p;
@@ -102,6 +102,11 @@ double hybrid_psrs_sort(long long *arr, int n, int p)
         memcpy(loc_a, a + start, loc_size * sizeof(int)); // puttig them in loc_a // this is correct
         loc_a_ptrs[thread_num] = loc_a;
 
+        // for (int i = 0; i < loc_size; ++i)
+        // {
+        //     printf("Rank:%d: %d\n", rank, loc_a[i]);
+        // }
+
         sortll(loc_a, loc_size);
 
         offset = thread_num * (p - 1) - 1;
@@ -111,10 +116,12 @@ double hybrid_psrs_sort(long long *arr, int n, int p)
 
             if (i * rsize <= end)
             {
+                // printf("Top: Rank:%d: %lld\n", rank, loc_a[i * rsize - 1]);
                 sample[offset + i] = loc_a[i * rsize - 1];
             }
             else
             {
+                // printf("bottom: Rank:%d: %lld\n", rank, loc_a[end]);
                 sample[offset + i] = loc_a[end];
             }
         }
@@ -125,7 +132,7 @@ double hybrid_psrs_sort(long long *arr, int n, int p)
     // they each take the correct number of sampples but the actual values are not rigtht
     for (int i = 0; i < sample_size; ++i)
     {
-        printf("Rank:%d: %lld\n", rank, sample[i]);
+        printf("Rank:%d: %d\n", rank, sample[i]);
     }
 
     //     // int *samples = (int *)calloc(size, sizeof(int));
