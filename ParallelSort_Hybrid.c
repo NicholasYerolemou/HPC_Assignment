@@ -58,6 +58,7 @@ double hybrid_psrs_sort(long long *arr, int n, int p)
     long long *partition_borders, *bucket_sizes, *result_positions;
     long long **loc_a_ptrs;
     size = (n_per + p - 1) / p; // size of each threads sub-array
+    // printf("size %lld\n", size);
     rsize = (size + p - 1) / p;
     sample_size = p * (p - 1); // the number of samples to be taken by this node
 
@@ -81,50 +82,52 @@ double hybrid_psrs_sort(long long *arr, int n, int p)
         int *loc_a, *this_result, *current_a;
 
         thread_num = omp_get_thread_num();
-        start = thread_num * size;
+        start = thread_num * size; // multiples of 32, starting index of where this threads values are placed
         end = start + size - 1;
 
         if (end >= n_per)
             end = n_per - 1;
-        loc_size = (end - start + 1); // size of each threads subarray
-        end = end % size;
+        loc_size = (end - start + 1); // size of each threads subarray = 32// this changes to 26 for thread 7 which is correct as that is how many elements are left of the 250
+        end = end % size;             // now end is just telling us how much we need to add to start to get to the next start value = 124
 
-        // if (thread_num == 2)
+        // if (rank == 0)
         // {
-        //     printf("Rank:%d loc_size%d\n", rank, loc_size);
-        //     printf("Rank:%d start:%d\n", rank, start);
+        //     printf("thread: %d start %d\n", thread_num, start);
+        //     printf("thread: %d end %d\n", thread_num, end);
+        //     printf("loc_size %d\n", loc_size);
         // }
 
         // loc_a is per thread
         loc_a = malloc(loc_size * sizeof(int));           // we are taking samples per thread
-        memcpy(loc_a, a + start, loc_size * sizeof(int)); // puttig them in loc_a
+        memcpy(loc_a, a + start, loc_size * sizeof(int)); // puttig them in loc_a // this is correct
         loc_a_ptrs[thread_num] = loc_a;
 
         sortll(loc_a, loc_size);
 
         offset = thread_num * (p - 1) - 1;
 
-        if (thread_num == 0)
-        {
-            printf("Rank:%d sample size%d\n", rank, loc_size);
-            // printf("Rank:%d start:%d\n", rank, start);
-        }
-
         for (int i = 1; i < p; i++) // moving the samples we collected into the main sample array, it holds the samples from all threads
         {
 
-            // if (i * rsize <= end)
-            // {
-            //     sample[offset + i] = loc_a[i * rsize - 1];
-            // }
-            // else
-            // {
-            //     sample[offset + i] = loc_a[end];
-            // }
+            if (i * rsize <= end)
+            {
+                sample[offset + i] = loc_a[i * rsize - 1];
+            }
+            else
+            {
+                sample[offset + i] = loc_a[end];
+            }
         }
     }
 
-    // #pragma omp barrier
+#pragma omp barrier
+
+    // they each take the correct number of sampples but the actual values are not rigtht
+    for (int i = 0; i < sample_size; ++i)
+    {
+        printf("Rank:%d: %lld\n", rank, sample[i]);
+    }
+
     //     // int *samples = (int *)calloc(size, sizeof(int));
 
     //     int *samples_all;
