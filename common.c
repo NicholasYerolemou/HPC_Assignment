@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 int lcompare(const void *ptr2num1, const void *ptr2num2)
 {
@@ -128,4 +129,42 @@ void calc_partition_borders(int array[], // array being sorted
   {
     calc_partition_borders(array, lowerbound, end, result, at, pivots, mid + 1, last_pv);
   }
+}
+
+// combines the arrays in arrays into result in numerical order
+void merge_lists(int *arrays[], int sizes[], int arraysCount, int result[], int resultSize)
+{
+  int *counters = (int *)calloc(arraysCount, sizeof(int));
+  // Merge the arrays
+  int mergedIndex = 0;
+  while (mergedIndex < resultSize)
+  {
+    int minValue = INT_MAX;
+    int minIndex = -1;
+
+    // Find the minimum value among the current indices
+    for (int i = 0; i < arraysCount; i++)
+    {
+      if (counters[i] < sizes[i] && arrays[i][counters[i]] < minValue)
+      {
+        minValue = arrays[i][counters[i]];
+        minIndex = i;
+      }
+    }
+
+    // If no minimum value found, break the loop
+    if (minIndex == -1)
+    {
+      break;
+    }
+
+    // Add the minimum value to the result array
+    result[mergedIndex] = minValue;
+    mergedIndex++;
+
+    // Move the counter for the array with the minimum value
+    counters[minIndex]++;
+  }
+
+  free(counters);
 }
