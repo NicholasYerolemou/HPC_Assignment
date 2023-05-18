@@ -198,6 +198,20 @@ double hybrid_psrs_sort(int *arr, int n, int p)
     MPI_Bcast(pivots, (p - 1), MPI_INT, 0, MPI_COMM_WORLD);
     // redistribute pivots
 
+#pragma omp parallel
+    {
+
+        int *partition_borders, *bucket_sizes;
+        int thread_num, end, loc_size, offset;
+        int *loc_a;
+        thread_num = omp_get_thread_num();
+
+        offset = thread_num * (p + 1);
+        partition_borders[offset] = 0;
+        partition_borders[offset + p] = end + 1;
+        calc_partition_borders(loc_a, 0, loc_size - 1, partition_borders, offset, pivots, 1, p - 1);
+    }
+
     // qsort(a, n_per, sizeof(int), cmp);//sorting of threads on this node
 
     // //done in parallel using openMP
