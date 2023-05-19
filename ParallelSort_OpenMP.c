@@ -1,6 +1,7 @@
 // #include "ParallelSort_OpenMP.h"
 #include "math.h"
 #include "time.h"
+#include <omp.h>
 // #include "common.c"
 
 // https://github.com/poodarchu/parallel-sorting-by-regular-sampling/blob/master/omp/test.c
