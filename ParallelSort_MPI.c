@@ -17,38 +17,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-// Print the contents of a list
-void print_array(int *list, int len, char *initial_msg, int proc)
-{
-  char msg[strlen(initial_msg) + 12];
-  strcpy(msg, initial_msg);
-  char proc_str[11];
-  sprintf(proc_str, " %d", proc);
-  strcat(msg, proc_str);
-  printf("%s: ", msg);
-  for (int i = 0; i < len; i++)
-  {
-    printf("%d ", list[i]);
-  }
-  printf("\n");
-  printf("\n");
-}
+#include "common.c"
 
 int cmp(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 
-void mpi_psrs_sort(int *arr, int len, int proc)
+void mpi_psrs_sort(int *arr, int len)
 {
-  long i, j, k;
-  int size, rank;
-  double begin, end, t;
-
   // initialize MPI environment :
+  int size, rank;
   MPI_Init(NULL, NULL);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   // phase 2 : Scatter data, local sort and regular samples collecte
+  long i, j, k;
+  double begin, end, t;
   int n_per = len / size;
   int *a = (int *)calloc(n_per, sizeof(int));
   assert(a != NULL);
@@ -189,4 +172,26 @@ void mpi_psrs_sort(int *arr, int len, int proc)
   free(send_dis);
   free(recv_dis);
   MPI_Finalize();
+}
+
+int main(int argc, char **argv)
+{
+  if (argc < 3)
+  {
+    printf("Insufficient arguments. Please provide two values.\nUsage: ./ParallelSort_MPI <seed> <size>\n");
+    return 1;
+  }
+
+  int seed = atoi(argv[1]); // Seed
+  int n = atoi(argv[2]);    // Size of input
+  int *arr = (int *)calloc(n, sizeof(int));
+
+  generate_input_values(arr, n, seed);
+
+  clock_t start_time = clock(); // end timer
+  mpi_psrs_sort(arr, n);
+  clock_t end_time = clock(); // end timer
+  double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+  printf("MPI: %f\n", elapsed_time);
+  return 0;
 }

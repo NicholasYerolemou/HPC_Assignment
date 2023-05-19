@@ -17,20 +17,40 @@ double hybrid_psrs_sort(int *arr, int n, int p);
 // int hybrid_lcompare(const void *ptr2num1, const void *ptr2num2);
 int main(int argc, char **argv)
 {
-    int size = 1000;
-    int numbers[size];
+    // int size = 1000;
+    // int numbers[size];
 
-    // Seed the random number generator
-    srand(1);
+    // // Seed the random number generator
+    // srand(1);
 
-    // Generate random int numbers and store them in the array
-    for (int i = 0; i < size; i++)
+    // // Generate random int numbers and store them in the array
+    // for (int i = 0; i < size; i++)
+    // {
+    //     numbers[i] = rand() % 1000;
+    //     // printf("%lld\n", numbers[i]);
+    // }
+
+    // hybrid_psrs_sort(numbers, size, 8);
+
+    if (argc < 4)
     {
-        numbers[i] = rand() % 1000;
-        // printf("%lld\n", numbers[i]);
+        printf("Insufficient arguments. Please provide two values.\nUsage: ./ParallelSort_MPI <seed> <size> <threads>\n");
+        return 1;
     }
 
-    hybrid_psrs_sort(numbers, size, 8);
+    int seed = atoi(argv[1]);    // Seed
+    int n = atoi(argv[2]);       // Size of input
+    int threads = atoi(argv[3]); // Size of input
+    int *arr = (int *)calloc(n, sizeof(int));
+
+    generate_input_values(arr, n, seed);
+
+    clock_t start_time = clock(); // end timer
+    hybrid_psrs_sort(arr, n, threads);
+    clock_t end_time = clock(); // end timer
+    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    printf("MPI: %f\n", elapsed_time);
+    return 0;
 }
 
 double hybrid_psrs_sort(int *arr, int n, int p)
