@@ -76,7 +76,7 @@ double hybrid_psrs_sort(int *arr, int n, int p)
     result_positions = malloc(p * sizeof(int));
     pivots = malloc((p - 1) * sizeof(int));
 
-    int *samples_all;
+    int *samples_all, *results_from_processes;
 
     // printf("size:%lld\n", size);
     // printf("n per node:%lld\n", n_per);
@@ -305,6 +305,31 @@ double hybrid_psrs_sort(int *arr, int n, int p)
         // }
 
         sortll(this_result, this_result_size); // this_result holds the sorted subarray for each thread
+
+#pragma omp single
+        {
+
+            int *result = (int *)calloc(n_per, sizeof(int)); // Allocate space for the nodes sorted list
+            if (rank == 0)
+                results_from_processes = (int *)calloc(n_per * numNodes, sizeof(int)); // Allocate memory for the list containing all the sorted nodes from all processes
+
+            merge_lists(ptrs_to_each_threads_subarray, per_thread_subarray_size, p, result, n_per); // sort the subarray for each thread on the node into the result array
+            MPI_Gather(result, n_per, MPI_INT, results_from_processes, n_per * numNodes, MPI_INT, 0,
+                       MPI_COMM_WORLD); // Gather all the sorted nodes from all processes into the results_from_processes array
+
+            if (rank == 0)
+            {
+                sortll(results_from_processes, n_per * numNodes); // sort the list of all the sorted nodes from all processes
+                for (int i = 0; i < n_per * numNodes; i++)
+                {
+                    printf("%d ", results_from_processes[i]);
+                }
+                printf("\n");
+            }
+
+            free(result);
+            free(results_from_processes);
+        }
 
 #pragma omp barrier
         free(per_thread_subarray);

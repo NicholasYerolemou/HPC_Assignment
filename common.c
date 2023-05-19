@@ -132,7 +132,7 @@ void calc_partition_borders(int array[], // array being sorted
 }
 
 // combines the arrays in arrays into result in numerical order
-void merge_lists(int *arrays[], int sizes[], int arraysCount, int result[], int resultSize)
+void merge_lists(int *arrays[], int each_array_size, int arraysCount, int result[], int resultSize)
 {
   int *counters = (int *)calloc(arraysCount, sizeof(int));
   // Merge the arrays
@@ -145,7 +145,7 @@ void merge_lists(int *arrays[], int sizes[], int arraysCount, int result[], int 
     // Find the minimum value among the current indices
     for (int i = 0; i < arraysCount; i++)
     {
-      if (counters[i] < sizes[i] && arrays[i][counters[i]] < minValue)
+      if (counters[i] < each_array_size && arrays[i][counters[i]] < minValue)
       {
         minValue = arrays[i][counters[i]];
         minIndex = i;
