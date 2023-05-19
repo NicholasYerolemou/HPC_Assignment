@@ -76,7 +76,7 @@ int *merge_sort(int *arr, int size)
 {
   if (size > 1)
   {
-    int middle = size / 2, i;
+    int middle = size / 2;
     int *left, *right;
     left = arr;
     right = arr + middle;
@@ -167,4 +167,26 @@ void merge_lists(int *arrays[], int sizes[], int arraysCount, int result[], int 
   }
 
   free(counters);
+}
+
+void insertion_sort(int *arr, int n)
+{
+  int i, j, k, temp;
+
+  for (i = 1; i <= n; i++)
+  {
+    for (j = 0; j < i; j++)
+    {
+      if (arr[j] > arr[i])
+      {
+        temp = arr[j];
+        arr[j] = arr[i];
+
+        for (k = i; k > j; k--)
+          arr[k] = arr[k - 1];
+
+        arr[k + 1] = temp;
+      }
+    }
+  }
 }
