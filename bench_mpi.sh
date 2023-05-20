@@ -23,10 +23,12 @@ NODES=(1 2 3 4)
 THREADS=(1 2 4 8 16 32)
 
 # Varying seeds for random number generator
-SEEDS=(123 456 789)
+SEEDS=(123 456 789 657 238 230 120 381)
 
 # Varying input sizes
-SIZES=(1000 10000 100000 1000000 10000000 100000000 1000000000)
+SIZES=(1000 10000 100000 1000000 10000000 100000000 1000000000 10000000000)
+
+NUM_SEEDS=${#SEEDS[@]}
 
 # Run the MPI program for each combination of parameters
 for ((run=1; run<=$NUM_RUNS; run++))
@@ -34,14 +36,13 @@ do
     # echo "Run $run"
     for nodes in "${NODES[@]}"
     do
-        for seed in "${SEEDS[@]}"
+        for ((i=0; i<NUM_SEEDS; i++))
         do
-            for size in "${SIZES[@]}"
-            do
+                seed=${SEEDS[i]}
+                size=${SIZES[i]}
                 echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes"
                 mpirun -np $nodes $MPI_PROGRAM $seed $size
                 echo "-----------------------------"
-            done
         done
     done
 done
@@ -52,16 +53,15 @@ do
     # echo "Run $run"
     for nodes in "${NODES[@]}"
     do
-        for seed in "${SEEDS[@]}"
+        for ((i=0; i<NUM_SEEDS; i++))
         do
             for thread in "${THREADS[@]}"
             do
-                for size in "${SIZES[@]}"
-                do
+                seed=${SEEDS[i]}
+                size=${SIZES[i]}
                 echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes, Threads: $thread"
                     mpirun -np $nodes $HYBRID_PROGRAM $seed $size $thread
                     echo "-----------------------------"
-                done
             done
         done
     done
