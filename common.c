@@ -2,6 +2,41 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
+#include "pcg-c-basic-0.9/pcg_basic.h"
+#include "pcg-c-basic-0.9/pcg_basic.c"
+
+void generate_input_values(int *arr, int size, int seed)
+{
+  pcg32_random_t rng;
+  pcg32_srandom_r(&rng, seed, 0);
+  uint64_t initstate = 0;
+  uint64_t initseq = 0;
+  pcg32_srandom_r(&rng, initstate,
+                  initseq);
+
+  for (int i = 0; i < size; i++)
+  {
+    arr[i] = pcg32_random_r(&rng);
+    // printf(" %i \n", arr[i]);
+  }
+}
+
+// Print the contents of a list
+void print_array(int *list, int len, char *initial_msg, int proc)
+{
+  char msg[strlen(initial_msg) + 12];
+  strcpy(msg, initial_msg);
+  char proc_str[11];
+  sprintf(proc_str, " %d", proc);
+  strcat(msg, proc_str);
+  printf("%s: ", msg);
+  for (int i = 0; i < len; i++)
+  {
+    printf("%d ", list[i]);
+  }
+  printf("\n");
+  printf("\n");
+}
 
 int lcompare(const void *ptr2num1, const void *ptr2num2)
 {
@@ -133,7 +168,7 @@ void calc_partition_borders(int array[], // array being sorted
 }
 
 // combines the arrays in arrays into result in numerical order
-void merge_lists(int *arrays[], int sizes[], int arraysCount, int result[], int resultSize)
+void merge_lists(int *arrays[], int each_array_size, int arraysCount, int result[], int resultSize)
 {
   int *counters = (int *)calloc(arraysCount, sizeof(int));
   // Merge the arrays
@@ -146,7 +181,7 @@ void merge_lists(int *arrays[], int sizes[], int arraysCount, int result[], int 
     // Find the minimum value among the current indices
     for (int i = 0; i < arraysCount; i++)
     {
-      if (counters[i] < sizes[i] && arrays[i][counters[i]] < minValue)
+      if (counters[i] < each_array_size && arrays[i][counters[i]] < minValue)
       {
         minValue = arrays[i][counters[i]];
         minIndex = i;
