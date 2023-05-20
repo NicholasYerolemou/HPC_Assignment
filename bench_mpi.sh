@@ -1,4 +1,13 @@
 #!/bin/bash
+#!/bin/sh
+#BATCH --account=icts
+#SBATCH --partition=curie
+#SBATCH --time=06:00:00
+#SBATCH --nodes=4 --ntasks=32 --ntasks-per-node=3
+#SBATCH --job-name=parallel_sort
+#SBATCH --mail-user=yrlnic001@myuct.ac.za,ndhcar002@myuct.ac.za
+#SBATCH --mail-type=ALL
+
 
 # MPI program executable
 MPI_PROGRAM="./ParallelSort_MPI"
@@ -8,10 +17,10 @@ HYBRID_PROGRAM="./ParallelSort_Hybrid"
 NUM_RUNS=1
 
 # Varying number of nodes
-NODES=(1 2 4 8 16 32)
+NODES=(1 2 3 4)
 
 # Varying number of nodes
-THREADS=(1 2 4 8 16 32 64)
+THREADS=(1 2 4 8 16 32)
 
 # Varying seeds for random number generator
 SEEDS=(123 456 789)
