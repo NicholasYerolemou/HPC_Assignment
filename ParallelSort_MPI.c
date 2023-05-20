@@ -21,8 +21,9 @@
 
 int cmp(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 
-void mpi_psrs_sort(int *arr, int len)
+double mpi_psrs_sort(int *arr, long len)
 {
+  clock_t start_time = clock(); // end timer
   // initialize MPI environment :
   int size, rank;
   MPI_Init(NULL, NULL);
@@ -59,6 +60,7 @@ void mpi_psrs_sort(int *arr, int len)
              MPI_COMM_WORLD);
 
   // Calculate the pivots in the root process
+
   int *pivots = (int *)calloc((size - 1), sizeof(int));
   assert(pivots != NULL);
   if (rank == 0)
@@ -73,7 +75,12 @@ void mpi_psrs_sort(int *arr, int len)
   MPI_Bcast(pivots, (size - 1), MPI_INT, 0, MPI_COMM_WORLD);
 
   // phase 4 : Local data is partitioned
+
   int index = 0;
+  if (size == 1)
+  {
+    index = -1;
+  }
   int *partition_size = (int *)calloc(size, sizeof(int));
   assert(partition_size != NULL);
   for (i = 0; i < n_per; i++)
@@ -81,12 +88,15 @@ void mpi_psrs_sort(int *arr, int len)
     if (a[i] > pivots[index])
     {
       index += 1;
+      // printf("pivots[Index]: %d\n", pivots[index]);
     }
     if (index == (size - 1))
     {
+      // printf("Index: %d", index);
       partition_size[index] = n_per - i;
       break;
     }
+
     partition_size[index]++;
   }
 
@@ -151,17 +161,11 @@ void mpi_psrs_sort(int *arr, int len)
               MPI_INT, 0, MPI_COMM_WORLD);
 
   // output sorting result :
-  if (rank == 0)
-  {
-    print_array(result, len, "Sorted data", rank);
-  }
-  // free memory :
-  if (rank == 0)
-  {
-    free(samples_all);
-    free(result);
-    free(recv_count);
-  }
+
+  // // free memory :
+  // if (rank == 0)
+  // {
+  // }
 
   free(a);
   free(samples);
@@ -172,6 +176,27 @@ void mpi_psrs_sort(int *arr, int len)
   free(send_dis);
   free(recv_dis);
   MPI_Finalize();
+
+  clock_t end_time = clock(); // end timer
+  double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+  if (rank == 0)
+  {
+    if (!(checkSorted(result, len)))
+    {
+      printf("Error: The array has not been sorted\n");
+
+      free(samples_all);
+      free(result);
+      free(recv_count);
+      return 0;
+    }
+
+    free(samples_all);
+    free(result);
+    free(recv_count);
+  }
+
+  return elapsed_time;
 }
 
 int main(int argc, char **argv)
@@ -183,15 +208,14 @@ int main(int argc, char **argv)
   }
 
   int seed = atoi(argv[1]); // Seed
-  int n = atoi(argv[2]);    // Size of input
+  long n = atoi(argv[2]);   // Size of input
   int *arr = (int *)calloc(n, sizeof(int));
 
   generate_input_values(arr, n, seed);
+  // print_array(arr, n, "Input data", 0);
 
-  clock_t start_time = clock(); // end timer
-  mpi_psrs_sort(arr, n);
-  clock_t end_time = clock(); // end timer
-  double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-  printf("MPI: %f\n", elapsed_time);
+  // printf("Seed %i, Size %li, Processors %i\n", seed, n, 1);
+  printf("MPI: %f\n", mpi_psrs_sort(arr, n));
+
   return 0;
 }
