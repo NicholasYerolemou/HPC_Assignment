@@ -215,6 +215,7 @@ double hybrid_psrs_sort(int *arr, long n, int p)
     free(bucket_sizes);
     free(result_positions);
     free(pivots);
+    free(samples_all);
 
     // when n is not divisable by num nodes we might be getting different n_per per node
     MPI_Gather(node_array, n_per, MPI_INT, arr, n_per, MPI_INT, 0, MPI_COMM_WORLD); // Gather all the sorted nodes from all processes into the results_from_processes array
