@@ -71,8 +71,16 @@ double hybrid_psrs_sort(int *arr, long n, int p)
 
         if (end >= n_per)
             end = n_per - 1;
-        per_thread_subarray_size = (end - start + 1); // size of each threads subarray = 32 // this changes to 26 for thread 7 which is correct as that is how many elements are left of the 250
-        end = end % size;                             // now end is just telling us how much we need to add to start to get to the next start value = 124
+        if (start >= end)
+        {
+            per_thread_subarray_size = 0;
+        }
+        else
+        {
+
+            per_thread_subarray_size = (end - start + 1); // size of each threads subarray = 32 // this changes to 26 for thread 7 which is correct as that is how many elements are left of the 250
+        }
+        end = end % size; // now end is just telling us how much we need to add to start to get to the next start value = 124
 
         // per_thread_subarray is per thread
         per_thread_subarray = malloc(per_thread_subarray_size * sizeof(int));                    // we are taking samples per thread

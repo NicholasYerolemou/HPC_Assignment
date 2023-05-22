@@ -21,41 +21,25 @@ HYBRID_PROGRAM="./hybrid"
 NUM_RUNS=1
 
 # Varying number of nodes
-NODES=(1 2 3 4)
-# NODES=(2)
+# NODES=(1 2 3 4)
+NODES=(3)
 
 # Varying number of nodes
-THREADS=(1 2 4 8 16 32)
-# THREADS=(8)
+# THREADS=(1 2 4 8 16 32)
+THREADS=(32)
 
 # Varying seeds for random number generator
-SEEDS=(42, 23, 143)
-# SEEDS=(42)
+# SEEDS=(42, 23, 143)
+SEEDS=(42)
 
 # Varying input sizes
-SIZES=(100000 1000000 10000000)
-# SIZES=(10000)
+# SIZES=(100000 1000000 10000000)
+# SIZES=(12000 120000 1200000)
+SIZES=(1000)
 
 NUM_SEEDS=${#SEEDS[@]}
 
-# Run the MPI program for each combination of parameters
-for ((run=1; run<=$NUM_RUNS; run++))
-do
-    # echo "Run $run"
-    for nodes in "${NODES[@]}"
-    do
-        for ((i=0; i<NUM_SEEDS; i++))
-        do
-                seed=${SEEDS[i]}
-                size=${SIZES[i]}
-                echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes"
-                mpirun -np $nodes $MPI_PROGRAM $seed $size
-                echo "-----------------------------"
-        done
-    done
-done
-
-# Run the Hybrid program for each combination of parameters
+# # Run the MPI program for each combination of parameters
 # for ((run=1; run<=$NUM_RUNS; run++))
 # do
 #     # echo "Run $run"
@@ -63,14 +47,32 @@ done
 #     do
 #         for ((i=0; i<NUM_SEEDS; i++))
 #         do
-#             for thread in "${THREADS[@]}"
-#             do
 #                 seed=${SEEDS[i]}
 #                 size=${SIZES[i]}
-#                 echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes, Threads: $thread"
-#                     mpirun -np $nodes $HYBRID_PROGRAM $seed $size $thread
-#                     echo "-----------------------------"
-#             done
+#                 echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes"
+#                 mpirun -np $nodes $MPI_PROGRAM $seed $size
+#                 echo "-----------------------------"
 #         done
 #     done
 # done
+
+#Run the Hybrid program for each combination of parameters
+for ((run=1; run<=$NUM_RUNS; run++))
+do
+    # echo "Run $run"
+    for nodes in "${NODES[@]}"
+    do
+        for ((i=0; i<NUM_SEEDS; i++))
+        do
+            for thread in "${THREADS[@]}"
+            do
+                    seed=${SEEDS[i]}
+                    size=${SIZES[i]}
+                    echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes, Threads: $thread"
+                    mpirun -np $nodes $HYBRID_PROGRAM $seed $size $thread
+                    echo "-----------------------------"
+            done
+        done
+    done
+done
+
