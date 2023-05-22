@@ -2,21 +2,22 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
+#include <stdbool.h>
 #include "pcg-c-basic-0.9/pcg_basic.h"
 #include "pcg-c-basic-0.9/pcg_basic.c"
 
-void generate_input_values(int *arr, int size, int seed)
+void generate_input_values(int *arr, long size, int seed)
 {
   pcg32_random_t rng;
   pcg32_srandom_r(&rng, seed, 0);
-  uint64_t initstate = 0;
-  uint64_t initseq = 0;
-  pcg32_srandom_r(&rng, initstate,
-                  initseq);
+  // uint64_t initstate = 0;
+  // uint64_t initseq = 0;
+  // pcg32_srandom_r(&rng, initstate,
+  //                 initseq);
 
   for (int i = 0; i < size; i++)
   {
-    arr[i] = pcg32_random_r(&rng);
+    arr[i] = abs(pcg32_random_r(&rng)) % size;
     // printf(" %i \n", arr[i]);
   }
 }
@@ -36,6 +37,18 @@ void print_array(int *list, int len, char *initial_msg, int proc)
   }
   printf("\n");
   printf("\n");
+}
+
+bool checkSorted(int *arr, long size)
+{
+  for (int i = 1; i < size; ++i)
+  {
+    if (arr[i] < arr[i - 1])
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 int lcompare(const void *ptr2num1, const void *ptr2num2)
