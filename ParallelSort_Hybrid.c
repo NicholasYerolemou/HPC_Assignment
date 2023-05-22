@@ -253,5 +253,6 @@ int main(int argc, char **argv)
     // printf("Seed %i, Size %li, Processors %i\n", seed, n, threads);
     printf("Hybrid: %f\n", hybrid_psrs_sort(arr, n, threads));
 
+    free(arr);
     return 0;
 }
