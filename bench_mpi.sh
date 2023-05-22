@@ -35,7 +35,8 @@ SEEDS=(42)
 # Varying input sizes
 # SIZES=(100000 1000000 10000000)
 # SIZES=(12000 120000 1200000)
-SIZES=(1000)
+SIZES=(12000)
+#these should be values that dont cause the system to reduece the number of threads
 
 NUM_SEEDS=${#SEEDS[@]}
 

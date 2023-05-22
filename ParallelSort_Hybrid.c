@@ -33,13 +33,20 @@ double hybrid_psrs_sort(int *arr, long n, int p)
     MPI_Scatter(arr, n_per, MPI_INT, node_array, n_per, MPI_INT, 0,
                 MPI_COMM_WORLD); // dristribute part of arr amongst nodes
 
-    omp_set_num_threads(p);
     int size, rsize, sample_size;
     int *sample, *pivots;
     int *partition_borders, *bucket_sizes, *result_positions;
     int **ptrs_to_each_threads_subarray;
     size = (n_per + p - 1) / p; // size of each threads sub-array
-    // printf("size %lld\n", size);
+
+    if (size * (p - 1) >= n_per) // the eay the arr is divided the last thread would not have any data to operate on.
+    {
+        p = p - 1;
+        printf("reducing num threads");
+    }
+
+    omp_set_num_threads(p);
+
     rsize = (size + p - 1) / p;
     sample_size = (p * (p - 1)) / numNodes; // the number of samples to be taken by this node
     if (sample_size == 0)
@@ -71,15 +78,17 @@ double hybrid_psrs_sort(int *arr, long n, int p)
 
         if (end >= n_per)
             end = n_per - 1;
-        if (start >= end)
-        {
-            per_thread_subarray_size = 0;
-        }
-        else
-        {
 
-            per_thread_subarray_size = (end - start + 1); // size of each threads subarray = 32 // this changes to 26 for thread 7 which is correct as that is how many elements are left of the 250
-        }
+        // if (start >= end)
+        // {
+        //     per_thread_subarray_size = 0;
+        //     start = end;
+        // }
+        // else
+        // {
+        //     per_thread_subarray_size = (end - start + 1); // size of each threads subarray = 32 // this changes to 26 for thread 7 which is correct as that is how many elements are left of the 250
+        // }
+        per_thread_subarray_size = (end - start + 1);
         end = end % size; // now end is just telling us how much we need to add to start to get to the next start value = 124
 
         // per_thread_subarray is per thread
@@ -213,25 +222,34 @@ double hybrid_psrs_sort(int *arr, long n, int p)
         sortll(this_result, this_result_size); // this_result holds the sorted subarray for each thread
                                                // print_array(this_result, this_result_size, "hello", 4);
 
+        // if (rank == 0)
+        // {
+        //     // print_array(this_result, this_result_size, "this result", thread_num);
+        //     printf("Thread %d: %d\n", thread_num, checkSorted(this_result, this_result_size));
+        // }
+
 #pragma omp barrier
         free(per_thread_subarray);
 
     } // end parallel - at this point each nodes array is sorted and help in node_array
 
     free(sample);
-    free(partition_borders);
-    free(bucket_sizes);
-    free(result_positions);
-    free(pivots);
-    free(samples_all);
+    // free(partition_borders);
+    // free(bucket_sizes);
+    // free(result_positions);
+    // free(pivots);
+    // free(samples_all);
 
-    // when n is not divisable by num nodes we might be getting different n_per per node
-    MPI_Gather(node_array, n_per, MPI_INT, arr, n_per, MPI_INT, 0, MPI_COMM_WORLD); // Gather all the sorted nodes from all processes into the results_from_processes array
+    //     // when n is not divisable by num nodes we might be getting different n_per per node
+    //     MPI_Gather(node_array, n_per, MPI_INT, arr, n_per, MPI_INT, 0, MPI_COMM_WORLD); // Gather all the sorted nodes from all processes into the results_from_processes array
 
-    merge_sort(arr, n); // sort the arrays retuned from each node
+    //     if (rank == 0)
+    //     {
+    //         merge_sort(arr, n); // sort the arrays retuned from each node
+    //     }
 
-    free(node_array);
-    free(ptrs_to_each_threads_subarray);
+    //     free(node_array);
+    //     free(ptrs_to_each_threads_subarray);
     MPI_Finalize();
 
     clock_t end_time = clock(); // end timer
