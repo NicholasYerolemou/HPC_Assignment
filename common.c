@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <omp.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
