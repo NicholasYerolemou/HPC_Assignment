@@ -105,10 +105,17 @@ double hybrid_psrs_sort(int *arr, long n, int p)
         {
 
             rsize = per_thread_subarray_size / range;
-
+            // printf("rsize:%d  per_thread_subarray_size:%d  range:%d \n", rsize, per_thread_subarray_size, range);
+            // printf("Sample: %d\n", sample_size);
             if ((((i + 1) * rsize) - 1) >= 0 && (((i + 1) * rsize) - 1) <= (per_thread_subarray_size - 1))
             {
-                sample[offset + i] = per_thread_subarray[((i + 1) * rsize) - 1];
+                // int temp = per_thread_subarray[((i + 1) * rsize) - 1];
+                // int temp = sample[offset + i];
+
+                if (offset + i < sample_size)
+                {
+                    sample[offset + i] = per_thread_subarray[((i + 1) * rsize) - 1];
+                }
             }
             else
             {
@@ -119,7 +126,7 @@ double hybrid_psrs_sort(int *arr, long n, int p)
 
 #pragma omp barrier
 
-        // we are actually taking p samples per node. if nodes = 4 we are taking 4 times as many samples as we should
+        // we are actually taking p samples per node.if nodes = 4 we are taking 4 times as many samples as we should
 
 #pragma omp single
         {
@@ -221,11 +228,11 @@ double hybrid_psrs_sort(int *arr, long n, int p)
         sortll(this_result, this_result_size); // this_result holds the sorted subarray for each thread
                                                // print_array(this_result, this_result_size, "hello", 4);
 
-        // if (rank == 0)
-        // {
-        //     // print_array(this_result, this_result_size, "this result", thread_num);
-        //     printf("Thread %d: %d\n", thread_num, checkSorted(this_result, this_result_size));
-        // }
+        if (rank == 0)
+        {
+            // print_array(this_result, this_result_size, "this result", thread_num);
+            // printf("Thread %d: %d\n", thread_num, checkSorted(this_result, this_result_size));
+        }
 
 #pragma omp barrier
         free(per_thread_subarray);
@@ -237,19 +244,22 @@ double hybrid_psrs_sort(int *arr, long n, int p)
     free(bucket_sizes);
     free(result_positions);
     free(pivots);
-    free(samples_all);
+    if (rank == 0)
+    {
+        // free(samples_all);
+    }
 
     // when n is not divisable by num nodes we might be getting different n_per per node
     MPI_Gather(node_array, n_per, MPI_INT, arr, n_per, MPI_INT, 0, MPI_COMM_WORLD); // Gather all the sorted nodes from all processes into the results_from_processes array
 
-    // if (rank == 0)
-    // {
-    // }
-    // printf("Rank: %d\n", rank);
-    merge_sort(arr, n); // sort the arrays retuned from each node
-
+    if (rank == 0)
+    {
+        merge_sort(arr, n); // sort the arrays retuned from each node
+    }
+    // printf("Sorted: %d\n", checkSorted(node_array, n_per));
     free(node_array);
     free(ptrs_to_each_threads_subarray);
+
     MPI_Finalize();
 
     clock_t end_time = clock(); // end timer
