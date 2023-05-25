@@ -11,7 +11,7 @@ Hybrid = []
 
 def readInOpenMP_Serial():
     # Open the file in read mode
-    with open(filename, 'r') as file:
+    with open(filename, "r") as file:
         lines = file.readlines()  # Read all lines from the file
 
     # Iterate over the lines and process the data
@@ -39,7 +39,7 @@ def readInOpenMP_Serial():
                 "size": size,
                 "processors": processors,
                 "serial_time": serial_time,
-                "openmp_time": openmp_time
+                "openmp_time": openmp_time,
             }
 
             # Add the parsed data to the resultsOMP list
@@ -49,12 +49,12 @@ def readInOpenMP_Serial():
 
 
 def readInMPI():
-    with open('MPI.txt', 'r') as file:
+    with open("MPI.txt", "r") as file:
         lines = file.readlines()
 
     for line in lines:
-        if line.startswith('Running MPI program with -'):
-            match = re.search(r'Seed: (\d+), Size (\d+), Nodes: (\d+)', line)
+        if line.startswith("Running MPI program with -"):
+            match = re.search(r"Seed: (\d+), Size (\d+), Nodes: (\d+)", line)
             if match:
                 seed = int(match.group(1))
                 size = int(match.group(2))
@@ -62,12 +62,11 @@ def readInMPI():
             else:
                 continue
 
-        if line.startswith('MPI: Rank 0:'):
-            match = re.search(r'MPI: Rank 0: (\d+\.\d+)', line)
+        if line.startswith("MPI: Rank 0:"):
+            match = re.search(r"MPI: Rank 0: (\d+\.\d+)", line)
             if match:
                 time = float(match.group(1))
-                MPI.append({'Seed': seed, 'Size': size,
-                            'Nodes': nodes, 'Time': time})
+                MPI.append({"Seed": seed, "Size": size, "Nodes": nodes, "Time": time})
     # for entry in MPI:
     #     print(entry)
 
@@ -101,7 +100,7 @@ def readInHybrid():
             "Size": size,
             "Nodes": nodes,
             "Threads": threads,
-            "Hybrid Rank 0 Time": rank_0_time
+            "Hybrid Rank 0 Time": rank_0_time,
         }
 
         # Append the dictionary to the data list
@@ -114,8 +113,7 @@ def readInHybrid():
 
 def plotSerial():
     # Filter the resultsOMP for cases where processors = 1 and size = 12000, 120000, 1200000
-    filtered_results = [data for data in resultsOMP if data["processors"]
-                        == 1]
+    filtered_results = [data for data in resultsOMP if data["processors"] == 1]
 
     # Sort the resultsOMP based on size for proper plotting order
     filtered_results.sort(key=lambda x: x["size"])
@@ -125,9 +123,9 @@ def plotSerial():
     serial_times = [data["serial_time"] for data in filtered_results]
 
     # Plotting
-    plt.plot(sizes, serial_times, marker='o')
+    plt.plot(sizes, serial_times, marker="o")
     plt.xlabel("Size")
-    plt.xscale('log')
+    plt.xscale("log")
     plt.ylabel("Serial Time")
     plt.title("Serial Time vs Size (Processors = 1)")
     plt.grid(True)
@@ -136,17 +134,15 @@ def plotSerial():
 
 def plotOpenMPSpeedup():
     # Filter the resultsOMP for size = 12000 and calculate the speedup
-    filtered_results = [
-        data for data in resultsOMP if data["size"] == 1200000000]
+    filtered_results = [data for data in resultsOMP if data["size"] == 1200000000]
     processors = [data["processors"] for data in filtered_results]
-    speedup = [data["serial_time"] / data["openmp_time"]
-               for data in filtered_results]
+    speedup = [data["serial_time"] / data["openmp_time"] for data in filtered_results]
 
     # speedup = [data["openmp_time"]
     #            for data in filtered_results]
 
     # Plotting
-    plt.plot(processors, speedup, marker='o')
+    plt.plot(processors, speedup, marker="o")
     plt.xlabel("Number of Processors")
     plt.ylabel("Speedup (Serial Time / OpenMP Time)")
     plt.title("Speedup vs Number of Processors (Size = 12000)")
@@ -156,23 +152,23 @@ def plotOpenMPSpeedup():
 
 def plotAllSpeedup():
     input_sizes = [120000, 1200000, 12000000, 120000000, 1200000000]
-    markers = ['o', 's', '^', 'x', '']  # Marker styles for each size
-    colors = ['blue', 'orange', 'green']  # Colors for each size
+    markers = ["o", "s", "^", "x", ""]  # Marker styles for each size
+    colors = ["blue", "orange", "green"]  # Colors for each size
 
     # Plotting
     plt.figure(figsize=(8, 6))
 
     for i, size in enumerate(input_sizes):
-        filtered_results = [
-            data for data in resultsOMP if data["size"] == size]
+        filtered_results = [data for data in resultsOMP if data["size"] == size]
         processors = [data["processors"] for data in filtered_results]
 
         # time = filtered_results[0]["serial_time"]
         # serial_time = data[]
         # data["serial_time"]
         # speedup = [data["serial_time"] for data in filtered_results]
-        speedup = [data["serial_time"] / data["openmp_time"]
-                   for data in filtered_results]
+        speedup = [
+            data["serial_time"] / data["openmp_time"] for data in filtered_results
+        ]
         # marker = markers[i]
         # color = colors[i]
 
@@ -191,8 +187,8 @@ def plotAllSpeedup():
 
 def plotMPISpeedup():
     sizes = [12000, 120000, 1200000, 12000000, 120000000, 1200000000]
-    markers = ['o', 's', '^']  # Marker styles for each size
-    colors = ['blue', 'orange', 'green']  # Colors for each size
+    markers = ["o", "s", "^"]  # Marker styles for each size
+    colors = ["blue", "orange", "green"]  # Colors for each size
 
     # filtered_results = [data for data in MPI if data["size"] == 12000]
 
@@ -213,10 +209,10 @@ def plotMPISpeedup():
 
     # Iterate over the MPI data
     for mpi_data in MPI:
-        seed = mpi_data['Seed']
-        size = mpi_data['Size']
-        nodes = mpi_data['Nodes']
-        time = mpi_data['Time']
+        seed = mpi_data["Seed"]
+        size = mpi_data["Size"]
+        nodes = mpi_data["Nodes"]
+        time = mpi_data["Time"]
 
         # Find the corresponding serial_time for the current input size
         for serial_data in serial_times_for_size:
@@ -249,9 +245,9 @@ def plotMPISpeedup():
     plt.plot([1, 2, 3, 4], arr5, label=sizes[4])
     plt.plot([1, 2, 3, 4], arr6, label=sizes[5])
 
-    plt.xlabel('Number of Nodes')
-    plt.ylabel('Speedup (Serial/MPI)')
-    plt.title('Speedup vs Number of Nodes')
+    plt.xlabel("Number of Nodes")
+    plt.ylabel("Speedup (Serial/MPI)")
+    plt.title("Speedup vs Number of Nodes")
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -263,20 +259,19 @@ def plotHybridSingleNodeSpeedup():
 
     # Combine the data from 'Hybrid' and 'resultsOMP' based on matching processors/threads
     for hybrid_data in Hybrid:
-        hybrid_threads = hybrid_data['Threads']
-        hybrid_time = hybrid_data['Hybrid Rank 0 Time']
-        hybrid_nodes = hybrid_data['Nodes']
-        hybrid_size = hybrid_data['Size']
+        hybrid_threads = hybrid_data["Threads"]
+        hybrid_time = hybrid_data["Hybrid Rank 0 Time"]
+        hybrid_nodes = hybrid_data["Nodes"]
+        hybrid_size = hybrid_data["Size"]
         if hybrid_nodes == 1:
             for omp_data in resultsOMP:
-                omp_processors = omp_data['processors']
-                omp_size = omp_data['size']
+                omp_processors = omp_data["processors"]
+                omp_size = omp_data["size"]
                 if omp_processors == hybrid_threads and omp_size == hybrid_size:
-                    omp_serial_time = omp_data['serial_time']
+                    omp_serial_time = omp_data["serial_time"]
                     speedup = omp_serial_time / hybrid_time
                     if hybrid_size in size_data:
-                        size_data[hybrid_size].append(
-                            (hybrid_threads, speedup))
+                        size_data[hybrid_size].append((hybrid_threads, speedup))
                     else:
                         size_data[hybrid_size] = [(hybrid_threads, speedup)]
                     break
@@ -286,11 +281,11 @@ def plotHybridSingleNodeSpeedup():
     for size, data in size_data.items():
         threads = [d[0] for d in data]
         speedup = [d[1] for d in data]
-        plt.plot(threads, speedup, marker='o', label=f"Size {size}")
+        plt.plot(threads, speedup, marker="o", label=f"Size {size}")
 
-    plt.xlabel('Number of Threads')
-    plt.ylabel('Speedup')
-    plt.title('Speedup vs Number of Threads (Nodes=1)')
+    plt.xlabel("Number of Threads")
+    plt.ylabel("Speedup")
+    plt.title("Speedup vs Number of Threads (Nodes=1)")
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -302,18 +297,25 @@ def plotHybridSpeedup():
 
     # Combine the data from 'Hybrid' and 'resultsOMP' based on matching processors/threads
     for hybrid_data in Hybrid:
-        hybrid_threads = hybrid_data['Threads']
-        hybrid_time = hybrid_data['Hybrid Rank 0 Time']
-        hybrid_nodes = hybrid_data['Nodes']
-        hybrid_size = hybrid_data['Size']
+        hybrid_threads = hybrid_data["Threads"]
+        hybrid_time = hybrid_data["Hybrid Rank 0 Time"]
+        hybrid_nodes = hybrid_data["Nodes"]
+        hybrid_size = hybrid_data["Size"]
         if hybrid_nodes == 3:
-            omp_serial_times = [omp_data['serial_time']
-                                for omp_data in resultsOMP if omp_data['size'] == hybrid_size]
-            omp_threads = [omp_data['processors']
-                           for omp_data in resultsOMP if omp_data['size'] == hybrid_size]
+            omp_serial_times = [
+                omp_data["serial_time"]
+                for omp_data in resultsOMP
+                if omp_data["size"] == hybrid_size
+            ]
+            omp_threads = [
+                omp_data["processors"]
+                for omp_data in resultsOMP
+                if omp_data["size"] == hybrid_size
+            ]
             if len(omp_serial_times) > 0:
-                speedup = [serial_time /
-                           hybrid_time for serial_time in omp_serial_times]
+                speedup = [
+                    serial_time / hybrid_time for serial_time in omp_serial_times
+                ]
                 size_data[hybrid_size] = list(zip(omp_threads, speedup))
 
     # Plotting the speedup vs number of threads for each size
@@ -321,21 +323,28 @@ def plotHybridSpeedup():
     for size, data in size_data.items():
         threads = [d[0] for d in data]
         speedup = [d[1] for d in data]
-        plt.plot(threads, speedup, marker='o', label=f"Size {size}")
+        plt.plot(threads, speedup, marker="o", label=f"Size {size}")
 
     for hybrid_data in Hybrid:
-        hybrid_threads = hybrid_data['Threads']
-        hybrid_time = hybrid_data['Hybrid Rank 0 Time']
-        hybrid_nodes = hybrid_data['Nodes']
-        hybrid_size = hybrid_data['Size']
+        hybrid_threads = hybrid_data["Threads"]
+        hybrid_time = hybrid_data["Hybrid Rank 0 Time"]
+        hybrid_nodes = hybrid_data["Nodes"]
+        hybrid_size = hybrid_data["Size"]
         if hybrid_nodes == 4:
-            omp_serial_times = [omp_data['serial_time']
-                                for omp_data in resultsOMP if omp_data['size'] == hybrid_size]
-            omp_threads = [omp_data['processors']
-                           for omp_data in resultsOMP if omp_data['size'] == hybrid_size]
+            omp_serial_times = [
+                omp_data["serial_time"]
+                for omp_data in resultsOMP
+                if omp_data["size"] == hybrid_size
+            ]
+            omp_threads = [
+                omp_data["processors"]
+                for omp_data in resultsOMP
+                if omp_data["size"] == hybrid_size
+            ]
             if len(omp_serial_times) > 0:
-                speedup = [serial_time /
-                           hybrid_time for serial_time in omp_serial_times]
+                speedup = [
+                    serial_time / hybrid_time for serial_time in omp_serial_times
+                ]
                 size_data[hybrid_size] = list(zip(omp_threads, speedup))
 
     # Plotting the speedup vs number of threads for each size
@@ -343,12 +352,11 @@ def plotHybridSpeedup():
     for size, data in size_data.items():
         threads = [d[0] for d in data]
         speedup = [d[1] for d in data]
-        plt.plot(threads, speedup, marker='o',
-                 linestyle="-.", label=f"Size {size}")
+        plt.plot(threads, speedup, marker="o", linestyle="-.", label=f"Size {size}")
 
-    plt.xlabel('Number of Threads')
-    plt.ylabel('Speedup')
-    plt.title('Speedup vs Number of Threads (Nodes=1)')
+    plt.xlabel("Number of Threads")
+    plt.ylabel("Speedup")
+    plt.title("Speedup vs Number of Threads (Nodes=1)")
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -360,43 +368,223 @@ def plotHybridBar():
 
     # Combine the data from 'Hybrid' and 'resultsOMP' based on matching processors/threads
     for hybrid_data in Hybrid:
-        hybrid_threads = hybrid_data['Threads']
-        hybrid_time = hybrid_data['Hybrid Rank 0 Time']
-        hybrid_nodes = hybrid_data['Nodes']
-        hybrid_size = hybrid_data['Size']
+        hybrid_threads = hybrid_data["Threads"]
+        hybrid_time = hybrid_data["Hybrid Rank 0 Time"]
+        hybrid_nodes = hybrid_data["Nodes"]
+        hybrid_size = hybrid_data["Size"]
         if hybrid_nodes == 1:
-            omp_serial_times = [omp_data['serial_time']
-                                for omp_data in resultsOMP if omp_data['size'] == hybrid_size]
-            omp_threads = [omp_data['processors']
-                           for omp_data in resultsOMP if omp_data['size'] == hybrid_size]
+            omp_serial_times = [
+                omp_data["serial_time"]
+                for omp_data in resultsOMP
+                if omp_data["size"] == hybrid_size
+            ]
+            omp_threads = [
+                omp_data["processors"]
+                for omp_data in resultsOMP
+                if omp_data["size"] == hybrid_size
+            ]
             if len(omp_serial_times) > 0:
-                speedup = [serial_time /
-                           hybrid_time for serial_time in omp_serial_times]
+                speedup = [
+                    serial_time / hybrid_time for serial_time in omp_serial_times
+                ]
                 size_data[hybrid_size] = list(zip(omp_threads, speedup))
 
     # Plotting the speedup vs number of threads for each size (Nodes=1)
     fig, ax = plt.subplots()
-    fig.suptitle('Speedup vs Number of Threads (Nodes=1)')
+    fig.suptitle("Speedup vs Number of Threads (Nodes=1)")
 
     for size, data in size_data.items():
         threads = [d[0] for d in data]
         speedup = [d[1] for d in data]
         ax.bar(threads, speedup, label=f"Size {size}")
 
-    ax.set_xlabel('Number of Threads')
-    ax.set_ylabel('Speedup')
+    ax.set_xlabel("Number of Threads")
+    ax.set_ylabel("Speedup")
     plt.xscale("log")
     ax.legend()
     ax.grid(True)
     plt.show()
 
 
-readInOpenMP_Serial()
-readInMPI()
-readInHybrid()
+def plotOpenmpBarrierTimes():
+    # Data for each barrier
+    barrier_1 = [
+        0.019900,
+        0.227820,
+        2.559414,
+        0.022475,
+        0.000010,
+        0.000009,
+        0.000015,
+        0.000011,
+        0.000032,
+        0.000000,
+        0.000033,
+        0.000092,
+        0.000105,
+        0.000080,
+        0.000115,
+        0.000037,
+        0.000195,
+        0.000133,
+    ]
+    barrier_2 = [
+        0.000001,
+        0.000001,
+        0.000002,
+        0.000043,
+        0.000048,
+        0.000060,
+        0.000108,
+        0.000097,
+        0.000124,
+        0.000350,
+        0.000221,
+        0.000302,
+        0.000592,
+        0.000307,
+        0.000562,
+        0.001281,
+        0.001173,
+        0.001439,
+    ]
+    barrier_3 = [
+        0.000001,
+        0.000002,
+        0.000003,
+        0.000016,
+        0.000018,
+        0.000022,
+        0.000071,
+        0.000058,
+        0.000061,
+        0.000108,
+        0.000059,
+        0.000145,
+        0.000215,
+        0.000263,
+        0.000254,
+        0.000529,
+        0.000607,
+        0.000415,
+    ]
+    barrier_4 = [
+        0.000001,
+        0.000001,
+        0.000000,
+        0.000009,
+        0.000007,
+        0.000004,
+        0.000015,
+        0.000014,
+        0.000003,
+        0.000031,
+        0.000037,
+        0.000036,
+        0.000064,
+        0.000069,
+        0.000063,
+        0.000169,
+        0.000103,
+        0.000101,
+    ]
+    barrier_5 = [
+        0.000000,
+        0.000001,
+        0.000000,
+        0.000043,
+        0.000036,
+        0.000045,
+        0.000080,
+        0.000086,
+        0.000045,
+        0.000213,
+        0.109117,
+        0.000207,
+        0.013687,
+        0.141128,
+        0.000337,
+        0.012834,
+        0.075760,
+        0.000692,
+    ]
+    barrier_6 = [
+        0.017183,
+        0.190205,
+        2.231373,
+        0.013671,
+        0.116472,
+        1.321842,
+        0.014802,
+        0.165775,
+        1.881083,
+        0.016188,
+        0.074105,
+        2.145754,
+        0.001762,
+        0.033515,
+        2.029498,
+        0.004098,
+        0.094043,
+        1.980095,
+    ]
+
+    # X-axis labels
+    x_labels = [
+        "120000-1",
+        "1200000-1",
+        "12000000-1",
+        "120000-2",
+        "1200000-2",
+        "12000000-2",
+        "120000-4",
+        "1200000-4",
+        "12000000-4",
+        "120000-8",
+        "1200000-8",
+        "12000000-8",
+        "120000-16",
+        "1200000-16",
+        "12000000-16",
+        "120000-32",
+        "1200000-32",
+        "12000000-32",
+    ]
+
+    # Bar positions on X-axis
+    x_pos = np.arange(len(x_labels))
+    bar_width = 0.4
+
+    # Plotting the bars
+    plt.bar(x_pos, barrier_1, bar_width, label="Barrier 1")
+    # plt.bar(x_pos + bar_width, barrier_2, bar_width, label="Barrier 2")
+    # plt.bar(x_pos + 2 * bar_width, barrier_3, bar_width, label="Barrier 3")
+    # plt.bar(x_pos + 3 * bar_width, barrier_4, bar_width, label="Barrier 4")
+    # plt.bar(x_pos + 4 * bar_width, barrier_5, bar_width, label="Barrier 5")
+    plt.bar(x_pos + 1 * bar_width, barrier_6, bar_width, label="Barrier 6")
+
+    # Setting the x-axis labels and rotating them for better visibility
+    plt.xticks(x_pos, x_labels, rotation="vertical")
+
+    # Adding a legend
+    plt.legend()
+
+    # Adding labels and title
+    plt.xlabel("Size-Processors")
+    plt.ylabel("Time (s)")
+    plt.title("Barrier Times")
+
+    # Displaying the graph
+    plt.show()
+
+
+# readInOpenMP_Serial()
+# readInMPI()
+# readInHybrid()
 # plotSerial()
 # plotOpenMPSpeedup()
 # plotAllSpeedup()
 # plotMPISpeedup()
 # plotHybridSpeedup()
-plotHybridBar()
+# plotHybridBar()
+plotOpenmpBarrierTimes()

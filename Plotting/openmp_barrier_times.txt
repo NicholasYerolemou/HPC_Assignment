@@ -1,0 +1,144 @@
+Seed 42, Size 120000, Processors 1
+Outputting barrier times
+Barrier 1: 0.019900
+Barrier 2: 0.000001
+Barrier 3: 0.000001
+Barrier 4: 0.000001
+Barrier 5: 0.000000
+Barrier 6: 0.017183
+Seed 23, Size 1200000, Processors 1
+Outputting barrier times
+Barrier 1: 0.227820
+Barrier 2: 0.000001
+Barrier 3: 0.000002
+Barrier 4: 0.000001
+Barrier 5: 0.000001
+Barrier 6: 0.190205
+Seed 143, Size 12000000, Processors 1
+Outputting barrier times
+Barrier 1: 2.559414
+Barrier 2: 0.000002
+Barrier 3: 0.000003
+Barrier 4: 0.000000
+Barrier 5: 0.000000
+Barrier 6: 2.231373
+Seed 42, Size 120000, Processors 2
+Outputting barrier times
+Barrier 1: 0.022475
+Barrier 2: 0.000043
+Barrier 3: 0.000016
+Barrier 4: 0.000009
+Barrier 5: 0.000043
+Barrier 6: 0.013671
+Seed 23, Size 1200000, Processors 2
+Outputting barrier times
+Barrier 1: 0.000010
+Barrier 2: 0.000048
+Barrier 3: 0.000018
+Barrier 4: 0.000007
+Barrier 5: 0.000036
+Barrier 6: 0.116472
+Seed 143, Size 12000000, Processors 2
+Outputting barrier times
+Barrier 1: 0.000009
+Barrier 2: 0.000060
+Barrier 3: 0.000022
+Barrier 4: 0.000004
+Barrier 5: 0.000045
+Barrier 6: 1.321842
+Seed 42, Size 120000, Processors 4
+Outputting barrier times
+Barrier 1: 0.000015
+Barrier 2: 0.000108
+Barrier 3: 0.000071
+Barrier 4: 0.000015
+Barrier 5: 0.000080
+Barrier 6: 0.014802
+Seed 23, Size 1200000, Processors 4
+Outputting barrier times
+Barrier 1: 0.000011
+Barrier 2: 0.000097
+Barrier 3: 0.000058
+Barrier 4: 0.000014
+Barrier 5: 0.000086
+Barrier 6: 0.165775
+Seed 143, Size 12000000, Processors 4
+Outputting barrier times
+Barrier 1: 0.000032
+Barrier 2: 0.000124
+Barrier 3: 0.000061
+Barrier 4: 0.000003
+Barrier 5: 0.000101
+Barrier 6: 1.881083
+Seed 42, Size 120000, Processors 8
+Outputting barrier times
+Barrier 1: 0.000000
+Barrier 2: 0.000350
+Barrier 3: 0.000108
+Barrier 4: 0.000031
+Barrier 5: 0.000213
+Barrier 6: 0.016188
+Seed 23, Size 1200000, Processors 8
+Outputting barrier times
+Barrier 1: 0.000033
+Barrier 2: 0.000221
+Barrier 3: 0.000059
+Barrier 4: 0.000037
+Barrier 5: 0.109117
+Barrier 6: 0.074105
+Seed 143, Size 12000000, Processors 8
+Outputting barrier times
+Barrier 1: 0.000092
+Barrier 2: 0.000302
+Barrier 3: 0.000145
+Barrier 4: 0.000036
+Barrier 5: 0.000207
+Barrier 6: 2.145754
+Seed 42, Size 120000, Processors 16
+Outputting barrier times
+Barrier 1: 0.000105
+Barrier 2: 0.000592
+Barrier 3: 0.000215
+Barrier 4: 0.000064
+Barrier 5: 0.013687
+Barrier 6: 0.001762
+Seed 23, Size 1200000, Processors 16
+Outputting barrier times
+Barrier 1: 0.000080
+Barrier 2: 0.000307
+Barrier 3: 0.000263
+Barrier 4: 0.000069
+Barrier 5: 0.141128
+Barrier 6: 0.033515
+Seed 143, Size 12000000, Processors 16
+Outputting barrier times
+Barrier 1: 0.000115
+Barrier 2: 0.000562
+Barrier 3: 0.000254
+Barrier 4: 0.000063
+Barrier 5: 0.000337
+Barrier 6: 2.029498
+Seed 42, Size 120000, Processors 32
+Outputting barrier times
+Barrier 1: 0.000037
+Barrier 2: 0.001281
+Barrier 3: 0.000529
+Barrier 4: 0.000169
+Barrier 5: 0.012834
+Barrier 6: 0.004098
+Seed 23, Size 1200000, Processors 32
+Outputting barrier times
+Barrier 1: 0.000195
+Barrier 2: 0.001173
+Barrier 3: 0.000607
+Barrier 4: 0.000103
+Barrier 5: 0.075760
+Barrier 6: 0.094043
+Seed 143, Size 12000000, Processors 32
+Outputting barrier times
+Barrier 1: 0.000133
+Barrier 2: 0.001439
+Barrier 3: 0.000415
+Barrier 4: 0.000101
+Barrier 5: 0.000692
+Barrier 6: 1.980095
