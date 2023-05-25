@@ -18,7 +18,7 @@ MPI_PROGRAM="./ParallelSort_MPI"
 HYBRID_PROGRAM="./hybrid"
 
 # Number of runs
-NUM_RUNS=1
+NUM_RUNS=3
 
 # Varying number of nodes
 NODES=(1 2 3 4)
