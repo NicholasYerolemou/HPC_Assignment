@@ -7,23 +7,29 @@
 #include "pcg-c-basic-0.9/pcg_basic.h"
 #include "pcg-c-basic-0.9/pcg_basic.c"
 
+/**
+ * Inserts random numbers into the array
+ * @param arr the array to insert into
+ * @param size the size of the array
+ * @param seed the seed to use for the random number generator
+ */
 void generate_input_values(int *arr, long size, int seed)
 {
   pcg32_random_t rng;
   pcg32_srandom_r(&rng, seed, 0);
-  // uint64_t initstate = 0;
-  // uint64_t initseq = 0;
-  // pcg32_srandom_r(&rng, initstate,
-  //                 initseq);
-
   for (int i = 0; i < size; i++)
   {
     arr[i] = abs(pcg32_random_r(&rng)) % size;
-    // printf(" %i \n", arr[i]);
   }
 }
 
-// Print the contents of a list
+/***
+ * Prints an array
+ * @param list the array to print
+ * @param len the length of the array
+ * @param initial_msg the message to print before the array
+ * @param proc the processor number
+ */
 void print_array(int *list, int len, char *initial_msg, int proc)
 {
   char msg[strlen(initial_msg) + 12];
@@ -40,6 +46,11 @@ void print_array(int *list, int len, char *initial_msg, int proc)
   printf("\n");
 }
 
+/**
+ * Checks if an array is sorted
+ * @param arr the array to check
+ * @param size the size of the array
+ */
 bool checkSorted(int *arr, long size)
 {
   for (int i = 1; i < size; ++i)
@@ -53,6 +64,19 @@ bool checkSorted(int *arr, long size)
   return true;
 }
 
+/**
+ * Compares two integers
+ * @param a the first integer
+ * @param b the second integer
+ * @return the difference between the two integers
+ */
+int cmp(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
+
+/**
+ * Compares two integers
+ * @param ptr2num1 the first integer
+ * @param ptr2num2 the second integer
+ */
 int lcompare(const void *ptr2num1, const void *ptr2num2)
 {
   int num1 = *((int *)ptr2num1);
@@ -66,8 +90,21 @@ int lcompare(const void *ptr2num1, const void *ptr2num2)
     return 0;
 }
 
+/**
+ * Sorts an array using quicksort
+ * @param a the array to sort
+ * @param len the length of the array
+ */
 void sortll(int *a, int len) { qsort(a, len, sizeof(int), lcompare); }
 
+/**
+ * Merges two sorted arrays into a single one
+ * @param left the left array
+ * @param right the right array
+ * @param l_end the length of the left array
+ * @param r_end the length of the right array
+ * @return the merged array
+ */
 int *merge(int *left, int *right, int l_end, int r_end)
 {
   int temp_off, l_off, r_off, size = l_end + r_end;
@@ -123,6 +160,11 @@ int *merge(int *left, int *right, int l_end, int r_end)
   return left;
 }
 
+/**
+ * Sorts an array using mergesort
+ * @param arr the array to sort
+ * @param size the size of the array
+ */
 int *merge_sort(int *arr, int size)
 {
   if (size > 1)
@@ -142,14 +184,18 @@ int *merge_sort(int *arr, int size)
   }
 }
 
-void calc_partition_borders(int array[], // array being sorted
-                            int start,
-                            int end, // separate the array into current process range
-                            int result[],
-                            int at,       // this process start point in result
-                            int pivots[], // the pivot values
-                            int first_pv, // first pivot
-                            int last_pv)  // last pivot
+/**
+ * Calculates the partition borders for a parallel quicksort algorithm
+ * @param array the array being sorted
+ * @param start the start of the array
+ * @param end the end of the array
+ * @param result the result array
+ * @param at the start of the result array
+ * @param pivots the pivot values
+ * @param first_pv the first pivot
+ * @param last_pv the last pivot
+ */
+void calc_partition_borders(int array[], int start, int end, int result[], int at, int pivots[], int first_pv, int last_pv)
 {
   int mid, lowerbound, upperbound, center;
   int pv;
@@ -179,65 +225,5 @@ void calc_partition_borders(int array[], // array being sorted
   if (mid < last_pv)
   {
     calc_partition_borders(array, lowerbound, end, result, at, pivots, mid + 1, last_pv);
-  }
-}
-
-// combines the arrays in arrays into result in numerical order
-void merge_lists(int *arrays[], int each_array_size, int arraysCount, int result[], int resultSize)
-{
-  int *counters = (int *)calloc(arraysCount, sizeof(int));
-  // Merge the arrays
-  int mergedIndex = 0;
-  while (mergedIndex < resultSize)
-  {
-    int minValue = INT_MAX;
-    int minIndex = -1;
-
-    // Find the minimum value among the current indices
-    for (int i = 0; i < arraysCount; i++)
-    {
-      if (counters[i] < each_array_size && arrays[i][counters[i]] < minValue)
-      {
-        minValue = arrays[i][counters[i]];
-        minIndex = i;
-      }
-    }
-
-    // If no minimum value found, break the loop
-    if (minIndex == -1)
-    {
-      break;
-    }
-
-    // Add the minimum value to the result array
-    result[mergedIndex] = minValue;
-    mergedIndex++;
-
-    // Move the counter for the array with the minimum value
-    counters[minIndex]++;
-  }
-
-  free(counters);
-}
-
-void insertion_sort(int *arr, int n)
-{
-  int i, j, k, temp;
-
-  for (i = 1; i <= n; i++)
-  {
-    for (j = 0; j < i; j++)
-    {
-      if (arr[j] > arr[i])
-      {
-        temp = arr[j];
-        arr[j] = arr[i];
-
-        for (k = i; k > j; k--)
-          arr[k] = arr[k - 1];
-
-        arr[k + 1] = temp;
-      }
-    }
   }
 }

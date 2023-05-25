@@ -1,38 +1,21 @@
-// #include "ParallelSort_OpenMP.h"
+//*********************************************************************************
+// Filename : 'psrs_omp.c'
+//
+// Function : Parallel sorting by regular sampling (using quick sort for local
+// sorting) using OpenMP
+//
+// Author : Benjin Zhu
+//
+// Date : 2017/08
+// Url: https://github.com/poodarchu/parallel-sorting-by-regular-sampling
+//
+//*********************************************************************************
 #include "math.h"
 #include "time.h"
 #include <omp.h>
-// #include "common.c"
 
-// https://github.com/poodarchu/parallel-sorting-by-regular-sampling/blob/master/omp/test.c
-
-// int main(int argc, char **argv)
-// {
-
-//  //if you want to compile openMP alone you also need to uncomment the common.c include
-
-//     int n = 250;
-//     int arr[n];
-//     srand(123);
-
-//     for (int i = 0; i < n; ++i) // fill the array with random values
-//     {
-//         arr[i] = rand() % 1000 + 1;
-//         // printf("%i\n", arr[i]);
-//     }
-
-//     openMP_psrs_sort(arr, n, 8);
-//     for (int i = 0; i < n; ++i)
-//     {
-//         // printf("%lli\n", arr[i]);
-//     }
-//     return 0;
-// }
-
-double openMP_psrs_sort(int *a, long n, int p);
 double openMP_psrs_sort(int *a, long n, int p) // issue when p = 0 and we commment out the n<=10000 part
 {
-    // print_array(a, n, "not sorted", 1);
     clock_t start_time = clock(); // start timer
 
     int size, rsize, sample_size;
@@ -122,7 +105,6 @@ double openMP_psrs_sort(int *a, long n, int p) // issue when p = 0 and we commme
             {
                 result_positions[i] = bucket_sizes[i - 1] + result_positions[i - 1];
             }
-            // print_array(result_positions, p, "Result Positions OpenMP:", 1);
         }
 
 #pragma omp barrier

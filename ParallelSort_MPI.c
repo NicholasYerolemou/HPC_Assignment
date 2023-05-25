@@ -19,11 +19,10 @@
 #include <time.h>
 #include "common.c"
 
-int cmp(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
-
 void mpi_psrs_sort(int *arr, long len, char *output)
 {
   clock_t start_time = clock(); // end timer
+
   // initialize MPI environment :
   int size, rank;
   MPI_Init(NULL, NULL);
@@ -31,8 +30,7 @@ void mpi_psrs_sort(int *arr, long len, char *output)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   // phase 2 : Scatter data, local sort and regular samples collecte
-  long i, j, k;
-  // double begin, end, t;
+  long i;
   int n_per = len / size;
   int *a = (int *)calloc(n_per, sizeof(int));
   assert(a != NULL);
@@ -55,12 +53,12 @@ void mpi_psrs_sort(int *arr, long len, char *output)
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
+
   // gather the samples data from all processes to the root process
   MPI_Gather(samples, size, MPI_INT, samples_all, size, MPI_INT, 0,
              MPI_COMM_WORLD);
 
   // Calculate the pivots in the root process
-
   int *pivots = (int *)calloc((size - 1), sizeof(int));
   assert(pivots != NULL);
   if (rank == 0)
@@ -71,11 +69,11 @@ void mpi_psrs_sort(int *arr, long len, char *output)
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
+
   // Send pivot values to all processes
   MPI_Bcast(pivots, (size - 1), MPI_INT, 0, MPI_COMM_WORLD);
 
   // phase 4 : Local data is partitioned
-
   int index = 0;
   if (size == 1)
   {
@@ -92,15 +90,12 @@ void mpi_psrs_sort(int *arr, long len, char *output)
       if (a[i] > pivots[index])
       {
         index += 1;
-        // printf("pivots[Index]: %d\n", pivots[index]);
       }
       if (index == (size - 1))
       {
-        // printf("Index: %d", index);
         partition_size[index] = n_per - i;
         break;
       }
-
       partition_size[index]++;
     }
   }
@@ -114,6 +109,7 @@ void mpi_psrs_sort(int *arr, long len, char *output)
   assert(new_partition_size != NULL);
 
   MPI_Barrier(MPI_COMM_WORLD);
+
   // Redistribute all amongst all processes
   MPI_Alltoall(partition_size, 1, MPI_INT, new_partition_size, 1, MPI_INT,
                MPI_COMM_WORLD);
@@ -130,12 +126,14 @@ void mpi_psrs_sort(int *arr, long len, char *output)
   assert(recv_dis != NULL);
   send_dis[0] = 0;
   recv_dis[0] = 0;
+
   for (i = 1; i < size; i++)
   {
     send_dis[i] = send_dis[i - 1] + partition_size[i - 1];
     recv_dis[i] = recv_dis[i - 1] + new_partition_size[i - 1];
   }
   MPI_Barrier(MPI_COMM_WORLD);
+
   // Redistribute the displacement values amongst all processes
   MPI_Alltoallv(a, partition_size, send_dis, MPI_INT, new_partitions,
                 new_partition_size, recv_dis, MPI_INT, MPI_COMM_WORLD);
@@ -150,6 +148,7 @@ void mpi_psrs_sort(int *arr, long len, char *output)
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
+
   // Gather the displacement values in the root process
   MPI_Gather(&totalsize, 1, MPI_INT, recv_count, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -165,11 +164,10 @@ void mpi_psrs_sort(int *arr, long len, char *output)
     result = (int *)calloc(len, sizeof(int));
 
   MPI_Barrier(MPI_COMM_WORLD);
+
   // Gathers the data from all partitions on all processes to the root process
   MPI_Gatherv(new_partitions, totalsize, MPI_INT, result, recv_count, recv_dis,
               MPI_INT, 0, MPI_COMM_WORLD);
-
-  // output sorting result :
 
   free(a);
   free(samples);

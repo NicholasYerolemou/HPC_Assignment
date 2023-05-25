@@ -9,21 +9,14 @@
 #include <time.h>
 #include <stdbool.h>
 
-// *char hybrid_psrs_sort(int *arr, long n, int p);
-
 void hybrid_psrs_sort(int *arr, long n, int p, char *output)
 {
     clock_t start_time = clock(); // end timer
-    // spilt data amogst nodes
-    // in each node run in parallel sample selection
-    // in openMP collect pivots
-    // in MPI collect pivots from all nodes
     int sizeMPI, rank;
     MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &sizeMPI);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    // int size = 4;
     int numNodes = sizeMPI;                              // number of nodes
     long n_per = n / numNodes;                           // amount of arr per node
     int *node_array = (int *)calloc(n_per, sizeof(int)); // part of arr for this node
@@ -52,7 +45,6 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
     {
         sample_size = 1;
     }
-    // printf("num samples per node %d\n", sample_size);
 
     ptrs_to_each_threads_subarray = malloc(p * sizeof(int *));
     sample = malloc(sample_size * sizeof(int)); // this holds the samples from this node is of size sample_size
@@ -78,15 +70,6 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
         if (end >= n_per)
             end = n_per - 1;
 
-        // if (start >= end)
-        // {
-        //     per_thread_subarray_size = 0;
-        //     start = end;
-        // }
-        // else
-        // {
-        //     per_thread_subarray_size = (end - start + 1); // size of each threads subarray = 32 // this changes to 26 for thread 7 which is correct as that is how many elements are left of the 250
-        // }
         per_thread_subarray_size = (end - start + 1);
         end = end % size; // now end is just telling us how much we need to add to start to get to the next start value = 124
 
@@ -103,15 +86,9 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
 
         for (int i = 0; i < range; i++) // moving the samples we collected into the main sample array, it holds the samples from all threads
         {
-
             rsize = per_thread_subarray_size / range;
-            // printf("rsize:%d  per_thread_subarray_size:%d  range:%d \n", rsize, per_thread_subarray_size, range);
-            // printf("Sample: %d\n", sample_size);
             if ((((i + 1) * rsize) - 1) >= 0 && (((i + 1) * rsize) - 1) <= (per_thread_subarray_size - 1))
             {
-                // int temp = per_thread_subarray[((i + 1) * rsize) - 1];
-                // int temp = sample[offset + i];
-
                 if (offset + i < sample_size)
                 {
                     sample[offset + i] = per_thread_subarray[((i + 1) * rsize) - 1];
@@ -119,14 +96,11 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
             }
             else
             {
-
-                sample[offset + i] = per_thread_subarray[per_thread_subarray_size - 1]; // come back to this !!!!!!!!!!!!!!
+                sample[offset + i] = per_thread_subarray[per_thread_subarray_size - 1];
             }
         }
 
 #pragma omp barrier
-
-        // we are actually taking p samples per node.if nodes = 4 we are taking 4 times as many samples as we should
 
 #pragma omp single
         {
@@ -138,23 +112,22 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
             }
 
             MPI_Barrier(MPI_COMM_WORLD);
-            // gather the samples data from all processes to the root process
+
+            // Gather the samples data from all processes to the root process
             MPI_Gather(sample, sample_size, MPI_INT, samples_all, sample_size, MPI_INT, 0,
                        MPI_COMM_WORLD);
 
             if (rank == 0) // sort the samples and select pivots
             {
-                // printf("There are %li sampels", sizeof(samples_all) / sizeof(int));
                 merge_sort(samples_all, numNodes * sample_size);
                 for (int i = 0; i < p - 1; i++)
                 {
-                    // printf("%d\n", samples_all[i * p + p / 2]);
                     pivots[i] = samples_all[i * p + p / 2]; // select the pivots from the sample array
                 }
             }
 
-            MPI_Bcast(pivots, (p - 1), MPI_INT, 0, MPI_COMM_WORLD);
             // redistribute pivots
+            MPI_Bcast(pivots, (p - 1), MPI_INT, 0, MPI_COMM_WORLD);
         }
 
 #pragma omp barrier
@@ -174,17 +147,12 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
         for (i = thread_num; i < max; i += p + 1)
         {
             bucket_sizes[thread_num] += partition_borders[i + 1] - partition_borders[i];
-            if (rank == 3)
-            {
-                // printf("Thread %d  in %d\n", thread_num, partition_borders[45]);
-            }
         }
 
 #pragma omp barrier
 
 #pragma omp single
         {
-
             {
                 result_positions[0] = 0;
                 for (i = 1; i < p; i++)
@@ -218,21 +186,12 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
             partition_size = (high - low);
             if (partition_size > 0)
             {
-
                 memcpy(this_result + j, &(ptrs_to_each_threads_subarray[i][low]), partition_size * sizeof(int));
-
                 j += partition_size;
             }
         }
 
         sortll(this_result, this_result_size); // this_result holds the sorted subarray for each thread
-                                               // print_array(this_result, this_result_size, "hello", 4);
-
-        if (rank == 0)
-        {
-            // print_array(this_result, this_result_size, "this result", thread_num);
-            // printf("Thread %d: %d\n", thread_num, checkSorted(this_result, this_result_size));
-        }
 
 #pragma omp barrier
         free(per_thread_subarray);
@@ -244,23 +203,16 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
     free(bucket_sizes);
     free(result_positions);
     free(pivots);
-    if (rank == 0)
-    {
-        // free(samples_all);
-    }
 
-    // when n is not divisable by num nodes we might be getting different n_per per node
-    MPI_Gather(node_array, n_per, MPI_INT, arr, n_per, MPI_INT, 0, MPI_COMM_WORLD); // Gather all the sorted nodes from all processes into the results_from_processes array
+    // Gather all the sorted nodes from all processes into the results_from_processes array
+    MPI_Gather(node_array, n_per, MPI_INT, arr, n_per, MPI_INT, 0, MPI_COMM_WORLD);
 
     if (rank == 0)
     {
         merge_sort(arr, n); // sort the arrays retuned from each node
     }
-    // printf("Sorted: %d\n", checkSorted(node_array, n_per));
     free(node_array);
     free(ptrs_to_each_threads_subarray);
-
-    // sprintf(output, "Rank:%f", rank);
 
     MPI_Finalize();
 
@@ -268,9 +220,6 @@ void hybrid_psrs_sort(int *arr, long n, int p, char *output)
     double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
     sprintf(output, "Rank %d: %f", rank, elapsed_time);
-    // return output;
-
-    // return elapsed_time;
 }
 
 int main(int argc, char **argv)

@@ -1,0 +1,7 @@
+temp/
+.vscode/
+hybrid
+ParallelSort_MPI
+ParallelSort_OpenMP
+ParallelSort_Serial
+bench

@@ -22,20 +22,15 @@ NUM_RUNS=1
 
 # Varying number of nodes
 NODES=(1 2 3 4)
-# NODES=(3)
 
 # Varying number of nodes
 THREADS=(1 2 4 8 16 32)
-# THREADS=(32)
 
 # Varying seeds for random number generator
-SEEDS=(42, 23, 143)
-# SEEDS=(42)
+SEEDS=(42 23 143)
 
 # Varying input sizes
-# SIZES=(100000 1000000 10000000)
-SIZES=(12000 120000 1200000)
-# SIZES=(12000)
+SIZES=(12000 120000 1200000 12000000 120000000 1200000000)
 #these should be values that dont cause the system to reduece the number of threads
 
 NUM_SEEDS=${#SEEDS[@]}
@@ -69,7 +64,7 @@ do
             do
                     seed=${SEEDS[i]}
                     size=${SIZES[i]}
-                    echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes, Threads: $thread"
+                    echo "Running Hybrid program with - Seed: $seed, Size $size, Nodes: $nodes, Threads: $thread"
                     mpirun -np $nodes $HYBRID_PROGRAM $seed $size $thread
                     echo "-----------------------------"
             done

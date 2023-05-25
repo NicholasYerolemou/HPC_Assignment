@@ -1,7 +1,17 @@
-
+//*********************************************************************************
+// Filename : 'psrs.c'
+//
+// Function : Parallel sorting by regular sampling (using quick sort for local
+// sorting) implemented in serial
+//
+// Author : Benjin Zhu
+//
+// Date : 2017/08
+// Url: https://github.com/poodarchu/parallel-sorting-by-regular-sampling
+//
+//*********************************************************************************
 
 #include <stdio.h>
-// #include "ParallelSort_Serial.h"
 #include <stdlib.h>
 #include "math.h"
 #include "time.h"
@@ -28,13 +38,6 @@
 
 // The swap, compare and parallel_sort methods were adapted from a ChatGPT version for parallel openMP into a seriel version
 
-// https://github.com/poodarchu/parallel-sorting-by-regular-sampling/blob/master/omp/test.c
-
-// int main(int argc, char **argv)
-// {
-// }
-
-double serial_psrs_sort(int *a, long n, int p);
 double serial_psrs_sort(int *a, long n, int p)
 {
     clock_t start_time = clock(); // start timer
@@ -55,25 +58,19 @@ double serial_psrs_sort(int *a, long n, int p)
     result_positions = malloc(p * sizeof(int));
     pivots = malloc((p - 1) * sizeof(int));
 
-    // #pragma omp parallel
-    // printf("P:%i\n", p);
     int i, j, max, start, end, loc_size, offset, this_result_size;
     int *loc_a, *this_result;
 
-    // int **ptr_to_loc_a[p]; // array of pointers to loc_a arrays indexed by thread_num;
     int loc_sizes[p]; // holds the sizes of each loc_a array
     for (int thread_num = 0; thread_num < p; thread_num++)
     {
-        // thread_num = omp_get_thread_num();
         start = thread_num * size;
         end = start + size - 1;
         if (end >= n)
             end = n - 1;
         loc_sizes[thread_num] = (end - start + 1);
-        // printf("Loc Size: %i\n", loc_size);
         end = end % size;
 
-        // loc_a = malloc(loc_size * sizeof(int));
         loc_a = malloc(loc_sizes[thread_num] * sizeof(int));
         memcpy(loc_a, a + start, loc_sizes[thread_num] * sizeof(int));
         loc_a_ptrs[thread_num] = loc_a;
@@ -82,6 +79,7 @@ double serial_psrs_sort(int *a, long n, int p)
 
         offset = thread_num * (p - 1) - 1;
 
+        // Pick the samples for this simulatd thread
         for (i = 1; i < p; i++)
         {
             if (i * rsize <= end)
@@ -96,6 +94,8 @@ double serial_psrs_sort(int *a, long n, int p)
     }
 
     merge_sort(sample, sample_size);
+
+    //   Sort the sampled array in parallel.
     for (i = 0; i < p - 1; i++)
     {
         pivots[i] = sample[i * p + p / 2];
@@ -107,10 +107,8 @@ double serial_psrs_sort(int *a, long n, int p)
         offset = thread_num * (p + 1);
         partition_borders[offset] = 0;
         partition_borders[offset + p] = end + 1;
-        // printf("Serial: Offset: %d  Partition Border 0: %d  Other:%d\n", offset, partition_borders[offset], partition_borders[offset + p]);
         calc_partition_borders(loc_a_ptrs[thread_num], 0, loc_sizes[thread_num] - 1, partition_borders, offset, pivots, 1, p - 1);
     }
-    // print_array(partition_borders, p * (p + 1), "Partition borders Serial:", 1);
 
     for (int thread_num = 0; thread_num < p; thread_num++)
     {
@@ -123,14 +121,12 @@ double serial_psrs_sort(int *a, long n, int p)
             bucket_sizes[thread_num] += partition_borders[i + 1] - partition_borders[i];
         }
     }
-    // print_array(bucket_sizes, p, "Bucket Sizes Serial:", 1);
 
     result_positions[0] = 0;
     for (i = 1; i < p; i++)
     {
         result_positions[i] = bucket_sizes[i - 1] + result_positions[i - 1];
     }
-    // print_array(result_positions, p, "Result Positions Serial:", 1);
 
     for (int thread_num = 0; thread_num < p; thread_num++)
     {
@@ -165,7 +161,6 @@ double serial_psrs_sort(int *a, long n, int p)
     }
 
     free(loc_a);
-    // end for
 
     free(loc_a_ptrs);
     free(sample);
