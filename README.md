@@ -2,7 +2,7 @@
 
 CSC4028Z High performance computing main assignment
 
-This assignment deals with benchmarking the parallel sorting regular sampling algortihm implemented in 4 different ways. First, implements the algorithm in serial being the basic solution to the problem. Second, implements parallelism using OpenMP exploiting the use of threads. Third, explores alternative parallelism through the use of multiple computing nodes instead of threads. Finally, the most parallel solution utlising both multiple computing nodes along with multiple threads on each node.
+This assignment deals with benchmarking the parallel sorting regular sampling algortihm implemented in 4 different ways. First, implements the algorithm in serial (`bash ParallelSort_Serial.c`) being the basic solution to the problem. Second, implements parallelism using OpenMP (`bash ParallelSort_OpenMP.c`) exploiting the use of threads. Third, explores alternative parallelism through the use of multiple computing nodes instead of threads (`bash ParallelSort_MPI.c`). Finally, the most parallel solution utlising both multiple computing nodes along with multiple threads on each node (`bash ParallelSort_Hybrid.c`).
 
 ## Running
 
