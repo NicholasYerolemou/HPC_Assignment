@@ -40,22 +40,22 @@ SIZES=(12000 120000 1200000)
 
 NUM_SEEDS=${#SEEDS[@]}
 
-# # Run the MPI program for each combination of parameters
-# for ((run=1; run<=$NUM_RUNS; run++))
-# do
-#     # echo "Run $run"
-#     for nodes in "${NODES[@]}"
-#     do
-#         for ((i=0; i<NUM_SEEDS; i++))
-#         do
-#                 seed=${SEEDS[i]}
-#                 size=${SIZES[i]}
-#                 echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes"
-#                 mpirun -np $nodes $MPI_PROGRAM $seed $size
-#                 echo "-----------------------------"
-#         done
-#     done
-# done
+# Run the MPI program for each combination of parameters
+for ((run=1; run<=$NUM_RUNS; run++))
+do
+    # echo "Run $run"
+    for nodes in "${NODES[@]}"
+    do
+        for ((i=0; i<NUM_SEEDS; i++))
+        do
+                seed=${SEEDS[i]}
+                size=${SIZES[i]}
+                echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes"
+                mpirun -np $nodes $MPI_PROGRAM $seed $size
+                echo "-----------------------------"
+        done
+    done
+done
 
 #Run the Hybrid program for each combination of parameters
 for ((run=1; run<=$NUM_RUNS; run++))
@@ -70,7 +70,7 @@ do
                     seed=${SEEDS[i]}
                     size=${SIZES[i]}
                     echo "Running MPI program with - Seed: $seed, Size $size, Nodes: $nodes, Threads: $thread"
-                    mpirun -np $nodes --oversubscribe $HYBRID_PROGRAM $seed $size $thread
+                    mpirun -np $nodes $HYBRID_PROGRAM $seed $size $thread
                     echo "-----------------------------"
             done
         done

@@ -21,7 +21,7 @@
 
 int cmp(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 
-double mpi_psrs_sort(int *arr, long len)
+void mpi_psrs_sort(int *arr, long len, char *output)
 {
   clock_t start_time = clock(); // end timer
   // initialize MPI environment :
@@ -32,7 +32,7 @@ double mpi_psrs_sort(int *arr, long len)
 
   // phase 2 : Scatter data, local sort and regular samples collecte
   long i, j, k;
-  double begin, end, t;
+  // double begin, end, t;
   int n_per = len / size;
   int *a = (int *)calloc(n_per, sizeof(int));
   assert(a != NULL);
@@ -81,23 +81,32 @@ double mpi_psrs_sort(int *arr, long len)
   {
     index = -1;
   }
+
   int *partition_size = (int *)calloc(size, sizeof(int));
   assert(partition_size != NULL);
-  for (i = 0; i < n_per; i++)
-  {
-    if (a[i] > pivots[index])
-    {
-      index += 1;
-      // printf("pivots[Index]: %d\n", pivots[index]);
-    }
-    if (index == (size - 1))
-    {
-      // printf("Index: %d", index);
-      partition_size[index] = n_per - i;
-      break;
-    }
 
-    partition_size[index]++;
+  if (size != 1)
+  {
+    for (i = 0; i < n_per; i++)
+    {
+      if (a[i] > pivots[index])
+      {
+        index += 1;
+        // printf("pivots[Index]: %d\n", pivots[index]);
+      }
+      if (index == (size - 1))
+      {
+        // printf("Index: %d", index);
+        partition_size[index] = n_per - i;
+        break;
+      }
+
+      partition_size[index]++;
+    }
+  }
+  else
+  {
+    partition_size[0] = len;
   }
 
   // phase 5 : All ith classes are gathered and merged
@@ -162,11 +171,6 @@ double mpi_psrs_sort(int *arr, long len)
 
   // output sorting result :
 
-  // // free memory :
-  // if (rank == 0)
-  // {
-  // }
-
   free(a);
   free(samples);
   free(pivots);
@@ -188,7 +192,7 @@ double mpi_psrs_sort(int *arr, long len)
       free(samples_all);
       free(result);
       free(recv_count);
-      return 0;
+      // return 0;
     }
 
     free(samples_all);
@@ -196,7 +200,7 @@ double mpi_psrs_sort(int *arr, long len)
     free(recv_count);
   }
 
-  return elapsed_time;
+  sprintf(output, "Rank %d: %f", rank, elapsed_time);
 }
 
 int main(int argc, char **argv)
@@ -212,10 +216,13 @@ int main(int argc, char **argv)
   int *arr = (int *)calloc(n, sizeof(int));
 
   generate_input_values(arr, n, seed);
-  // print_array(arr, n, "Input data", 0);
+  char output[20];
 
-  // printf("Seed %i, Size %li, Processors %i\n", seed, n, 1);
-  printf("MPI: %f\n", mpi_psrs_sort(arr, n));
+  mpi_psrs_sort(arr, n, output);
+  if (output[5] == '0')
+  {
+    printf("MPI: %s\n", output);
+  }
 
   return 0;
 }

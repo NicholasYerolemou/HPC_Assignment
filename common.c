@@ -46,6 +46,7 @@ bool checkSorted(int *arr, long size)
   {
     if (arr[i] < arr[i - 1])
     {
+      printf("%d  %d\n", arr[i], arr[i - 1]);
       return false;
     }
   }

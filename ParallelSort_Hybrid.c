@@ -9,9 +9,9 @@
 #include <time.h>
 #include <stdbool.h>
 
-double hybrid_psrs_sort(int *arr, long n, int p);
+// *char hybrid_psrs_sort(int *arr, long n, int p);
 
-double hybrid_psrs_sort(int *arr, long n, int p)
+void hybrid_psrs_sort(int *arr, long n, int p, char *output)
 {
     clock_t start_time = clock(); // end timer
     // spilt data amogst nodes
@@ -145,7 +145,7 @@ double hybrid_psrs_sort(int *arr, long n, int p)
             if (rank == 0) // sort the samples and select pivots
             {
                 // printf("There are %li sampels", sizeof(samples_all) / sizeof(int));
-                merge_sort(samples_all, numNodes * sample_size); // we need to work out sample size, because we are actually taking more samples than we should
+                merge_sort(samples_all, numNodes * sample_size);
                 for (int i = 0; i < p - 1; i++)
                 {
                     // printf("%d\n", samples_all[i * p + p / 2]);
@@ -260,12 +260,17 @@ double hybrid_psrs_sort(int *arr, long n, int p)
     free(node_array);
     free(ptrs_to_each_threads_subarray);
 
+    // sprintf(output, "Rank:%f", rank);
+
     MPI_Finalize();
 
     clock_t end_time = clock(); // end timer
     double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
-    return elapsed_time;
+    sprintf(output, "Rank %d: %f", rank, elapsed_time);
+    // return output;
+
+    // return elapsed_time;
 }
 
 int main(int argc, char **argv)
@@ -284,10 +289,12 @@ int main(int argc, char **argv)
 
     generate_input_values(arr, n, seed);
 
-    // hybrid_psrs_sort(arr, n, threads);
-
-    // printf("Seed %i, Size %li, Processors %i\n", seed, n, threads);
-    printf("Hybrid: %f\n", hybrid_psrs_sort(arr, n, threads));
+    char output[20];
+    hybrid_psrs_sort(arr, n, threads, output);
+    if (output[5] == '0')
+    {
+        printf("Hybrid: %s\n", output);
+    }
 
     free(arr);
     return 0;
